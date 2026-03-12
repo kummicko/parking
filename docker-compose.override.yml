@@ -1,0 +1,11 @@
+services:
+  parking:
+    command: python src/manage.py runserver 0.0.0.0:8000
+    user: "1000:1000"
+    volumes:
+      # This allows you to edit code on your host and see changes instantly
+      - ./src:/app/src
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True

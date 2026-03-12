@@ -1,0 +1,36 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# uv & Virtual Environments
+.venv/
+# uv.lock
+# We usually copy uv.lock specifically in the Dockerfile, 
+# but ignoring it here prevents the whole context from getting heavy.
+
+# Django/Database
+db.sqlite3
+db.sqlite3-journal
+media/
+static_root/
+
+# Environment & Secrets
+.env
+.venv/
+*.local
+
+# Docker & OS
+.dockerignore
+Dockerfile
+docker-compose.yml
+.DS_Store
+get-docker.sh
+deploy.py

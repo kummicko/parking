@@ -1,0 +1,64 @@
+[project]
+name = "parking"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=6.0.1",
+    "openai>=2.23.0",
+    "python-dotenv>=1.2.1",
+]
+
+[dependency-groups]
+prod = [
+    "gunicorn>=23.0.0",
+    "whitenoise>=6.11.0",
+]
+dev = [
+    "django-stubs>=5.1.1",
+]
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",  # Basic errors
+    "I",   # isort
+    "DJ",  # flake8-django
+    "UP",           # pyupgrade
+    "B",            # flake8-bugbear
+    "S",            # flake8-bandit
+    # Consider enabling these gradually:
+    # "ANN",  # All annotation rules
+]
+
+[tool.ruff.lint.flake8-annotations]
+mypy-init-return = true
+suppress-none-returning = true
+
+[tool.ruff.lint.flake8-django]
+# Tell Ruff about Django settings module
+django-settings-module = "config.settings"  # Adjust to your settings path
+
+# Ignore Django model-specific false positives
+[tool.ruff.lint.per-file-ignores]
+"*/models.py" = [
+    "ANN101",  # Missing type annotation for `self`
+    "ANN102",  # Missing type annotation for method argument
+    "DJ001",   # Avoid using null=True on string-based fields
+]
+
+"*/migrations/*.py" = ["E501"]  # Allow long lines in migrations
+
+
+[tool.pyright]
+include = ["."]
+# Disables type checking diagnostics
+typeCheckingMode = "off"
+reportGeneralTypeIssues = false
+reportMissingImports = false
+reportUnusedImport = false
+# Keep the settings module if you still use other tools that rely on this block
+djangoSettingsModule = "config.settings"

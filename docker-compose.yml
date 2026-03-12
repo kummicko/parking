@@ -1,0 +1,11 @@
+services:
+  parking:
+    build:
+      context: .
+      args:
+        - UID=${APP_UID}
+        - GID=${APP_GID}
+    user: "${APP_UID}:${APP_GID}"
+    env_file: .env
+    volumes:
+      - ./src/db:/app/src/db
