@@ -60,4 +60,4 @@ RUN SECRET_KEY=build-secret DEBUG=False ALLOWED_HOSTS=localhost \
 
 EXPOSE 8000
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--chdir", "src", "parking.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--chdir", "src", "--access-logfile", "-", "--error-logfile", "-", "parking.wsgi:application"]
