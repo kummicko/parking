@@ -37,7 +37,7 @@ if not DEBUG:
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://test.fswd.site",
+    "https://parking.fswd.site",
 ]
 
 # Application definition
@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "accounts",
+    "home",
 ]
 
 MIDDLEWARE = [
@@ -64,6 +66,7 @@ MIDDLEWARE += [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -124,7 +127,21 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# AUTH_USER_MODEL = "accounts.User"
+AUTH_USER_MODEL = "accounts.User"
+
+# --- Authentication Settings ---
+
+# 1. LOGIN_URL: Where Django redirects users if they need to log in (e.g., when accessing a @login_required view).
+# This must match the URL name defined in accounts/urls.py
+LOGIN_URL = "accounts:login"
+
+# 2. LOGIN_REDIRECT_URL: The URL to redirect users to after successful login.
+# Assuming you have a main view in your 'parking' app named 'index' or 'home'.
+# Use the namespace (parking) and the URL name (e.g., index).
+LOGIN_REDIRECT_URL = "home:index"
+
+# 3. LOGOUT_REDIRECT_URL (Optional but recommended): The URL to redirect users to after logging out.
+LOGOUT_REDIRECT_URL = "accounts:login"
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/

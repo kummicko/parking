@@ -1,0 +1,16 @@
+services:
+  parking:
+    build: .
+    container_name: parking
+    env_file: .env
+    restart: always
+    expose:
+      - "8000"
+    volumes:
+      - ./src/db:/app/src/db
+    networks:
+      - shared_web
+
+networks:
+  shared_web:
+    external: true

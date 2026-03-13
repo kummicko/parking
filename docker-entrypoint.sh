@@ -8,6 +8,7 @@ if [ ! -w /app/src/db ]; then
 fi
 
 echo "Running database migrations..."
+python src/manage.py makemigrations --noinput
 python src/manage.py migrate --noinput
 
 exec "$@"

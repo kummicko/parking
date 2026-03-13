@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block main_content %}
+<div class="flex items-center justify-center min-h-screen">
+    <div class="mx-2 bg-white p-8 md:p-10 rounded-xl shadow-2xl max-w-sm w-full">
+        <h2 class="text-3xl font-extrabold text-gray-900 mb-6 text-center">Prijava</h2>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <!-- Hidden input for 'next' parameter if present in URL -->
+            {% if request.GET.next %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+            {% endif %}
+
+            <!-- Form Error Display -->
+            {% if form.errors %}
+                <div class="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm" role="alert">
+                    Molimo ispravite greške u unosu.
+                </div>
+            {% endif %}
+
+            <!-- User Name Field -->
+            <div class="">
+                <label for="{{ form.username.id_for_label }}" class="block text-gray-600 font-semibold mb-2">
+                    Korisničko Ime
+                </label>
+                {{ form.username }}
+                {% for error in form.username.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Password Field -->
+            <div class="">
+                <label for="{{ form.password.id_for_label }}" class="block text-gray-600 font-semibold mb-2">
+                    Lozinka
+                </label>
+                {{ form.password }}
+                {% for error in form.password.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Global (Non-field) Errors -->
+            {% if form.non_field_errors %}
+                <div class="text-red-500 text-sm mt-2">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent 
+                rounded-lg shadow-sm text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 
+                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                Prijavi se
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock main_content %}
