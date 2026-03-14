@@ -1,0 +1,26 @@
+{% extends "base_main.html" %}
+{% load static %}
+
+{% block nav_title %}Korisnici{% endblock nav_title %}
+
+{% block links %}
+{% endblock links %}
+
+{% block content %}
+
+{# ─── HEADER ROW ──────────────────────────────────────────────────────────── #}
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-4">
+  <input type="search"
+         name="q"
+         placeholder="Pretraži po imenu, tablicama, telefonu..."
+         class="form-input flex-1 min-w-0"
+         hx-get="{% url 'home:user_list' %}"
+         hx-trigger="input changed delay:300ms, search"
+         hx-target="#user-list"
+         hx-swap="outerHTML swap:300ms">
+  <button onclick="openGlobalModal('{% url 'home:create_user_form' %}')"
+          class="btn btn-primary btn-sm whitespace-nowrap self-end sm:self-auto flex-shrink-0">+ Novi korisnik</button>
+</div>
+{# ─── USER CARDS ──────────────────────────────────────────────────────────── #}
+{% include "home/partials/user_list.html" %}
+{% endblock content %}

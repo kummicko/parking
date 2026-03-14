@@ -1,1 +1,128 @@
-<p>hello</p>
+{% extends "base_main.html" %}
+
+{% block nav_title %}Dashboard{% endblock nav_title %}
+
+{% block links %}
+{% endblock links %}
+
+{% block content %}
+
+{# ─── KPI STAT CARDS ──────────────────────────────────────────────────────── #}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+
+  <div class="card-no-hover flex flex-col gap-1">
+    <span class="text-xs font-medium text-body uppercase tracking-wide">Ukupno mesta</span>
+    <span class="text-3xl font-bold text-heading">{{ stats.total_spots|default:"—" }}</span>
+    <span class="text-xs text-body">kapacitet parkinga</span>
+  </div>
+
+  <div class="card-no-hover flex flex-col gap-1">
+    <span class="text-xs font-medium text-success uppercase tracking-wide">Slobodna</span>
+    <span class="text-3xl font-bold text-success">{{ stats.free_spots|default:"—" }}</span>
+    <div class="w-full bg-default rounded-full h-1.5 mt-1">
+      <div class="bg-success h-1.5 rounded-full" style="width: {{ stats.free_pct|default:0 }}%"></div>
+    </div>
+  </div>
+
+  <div class="card-no-hover flex flex-col gap-1">
+    <span class="text-xs font-medium text-danger uppercase tracking-wide">Zauzeta</span>
+    <span class="text-3xl font-bold text-danger">{{ stats.occupied_spots|default:"—" }}</span>
+    <div class="w-full bg-default rounded-full h-1.5 mt-1">
+      <div class="bg-danger h-1.5 rounded-full" style="width: {{ stats.occupied_pct|default:0 }}%"></div>
+    </div>
+  </div>
+
+  <div class="card-no-hover flex flex-col gap-1">
+    <span class="text-xs font-medium text-fg-brand uppercase tracking-wide">Prihod danas</span>
+    <span class="text-3xl font-bold text-heading">
+      {{ stats.revenue_today|default:"—" }}
+      <span class="text-base font-normal text-body">RSD</span>
+    </span>
+    <span class="text-xs text-body">{{ stats.sessions_today|default:"0" }} uplata danas</span>
+  </div>
+
+</div>
+
+{# ─── OCCUPANCY + RECENT PAYMENTS ─────────────────────────────────────────── #}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
+
+  {# Overall occupancy #}
+  <div class="card-no-hover flex flex-col gap-3">
+    <h2 class="font-semibold text-heading text-sm uppercase tracking-wide">Popunjenost parkinga</h2>
+
+    <div class="flex flex-col gap-2">
+      <div class="flex justify-between items-center text-sm">
+        <span class="font-medium text-body">Zauzeto</span>
+        <span class="text-xs text-body">{{ stats.occupied_spots }}/{{ stats.total_spots }} mesta</span>
+      </div>
+      <div class="w-full bg-default rounded-full h-3">
+        <div class="h-3 rounded-full transition-all duration-500
+          {% if stats.occupied_pct >= 90 %}bg-danger
+          {% elif stats.occupied_pct >= 60 %}bg-warning
+          {% else %}bg-success{% endif %}"
+          style="width: {{ stats.occupied_pct|default:0 }}%">
+        </div>
+      </div>
+      <div class="flex justify-between text-xs text-body mt-1">
+        <span class="text-success">{{ stats.free_spots }} slobodna</span>
+        <span class="text-danger">{{ stats.occupied_spots }} zauzeta</span>
+      </div>
+    </div>
+
+    {# Total debt overview #}
+    <div class="mt-2 pt-3 border-t border-default flex justify-between items-center">
+      <span class="text-sm text-body">Ukupan dug korisnika</span>
+      <span class="text-lg font-bold {% if stats.total_debt > 0 %}text-danger{% else %}text-success{% endif %}">
+        {{ stats.total_debt|default:"0" }} <span class="text-xs font-normal text-body">RSD</span>
+      </span>
+    </div>
+  </div>
+
+  {# Recent payments #}
+  <div class="card-no-hover flex flex-col gap-2">
+    <h2 class="font-semibold text-heading text-sm uppercase tracking-wide">Nedavne uplate</h2>
+
+    <div class="flex flex-col divide-y divide-default">
+      {% for payment in recent_payments %}
+      <div class="flex items-center justify-between py-2 text-sm">
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-2 h-2 rounded-full bg-success flex-shrink-0"></span>
+          <span class="font-medium text-heading">{{ payment.subscription.user }}</span>
+          <span class="text-body text-xs">— mesto {{ payment.subscription.spot.number }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-heading">{{ payment.amount }} RSD</span>
+          <span class="text-xs text-body whitespace-nowrap">{{ payment.paid_date|date:"d.m.Y" }}</span>
+        </div>
+      </div>
+      {% empty %}
+      <p class="text-sm text-body py-2">Nema nedavnih uplata.</p>
+      {% endfor %}
+    </div>
+
+    <a href="#" class="btn btn-gray btn-sm mt-2 self-start">Sve uplate →</a>
+  </div>
+
+</div>
+
+{# ─── ALERTS ─────────────────────────────────────────────────────────────── #}
+{% if alerts %}
+<div class="card-no-hover flex flex-col gap-2">
+  <h2 class="font-semibold text-heading text-sm uppercase tracking-wide">Upozorenja</h2>
+  <div class="flex flex-col gap-2">
+    {% for alert in alerts %}
+    <div class="flex items-start gap-3 p-3 rounded-lg border text-sm
+      {% if alert.level == 'danger' %}bg-danger-soft border-danger-subtle text-danger
+      {% elif alert.level == 'warning' %}bg-warning-soft border-warning-subtle text-warning
+      {% else %}bg-brand-soft border-brand-subtle text-fg-brand{% endif %}">
+      <span class="flex-shrink-0">
+        {% if alert.level == 'danger' %}⛔{% elif alert.level == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+      </span>
+      <span>{{ alert.message }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock content %}

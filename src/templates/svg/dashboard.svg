@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="24px" height="24px">
+  <linearGradient id="gradLR" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#a40404" />
+    <stop offset="100%" stop-color="#d98322" />
+  </linearGradient>
+  <linearGradient id="gradRL" x1="100%" y1="0%" x2="0%" y2="0%">
+    <stop offset="0%" stop-color="#7fe32d" />
+    <stop offset="100%" stop-color="#0ba02c" />
+  </linearGradient>
+    <linearGradient id="gradTB" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#62cff4" />
+    <stop offset="100%" stop-color="#2c67f2" />
+  </linearGradient>
+    <linearGradient id="gradBT" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#fdeb71" />
+    <stop offset="100%" stop-color="#f8d800" />
+  </linearGradient>
+  <rect x="5" y="5" width="40" height="50" stroke-width="1" stroke="black" fill="url(#gradLR)" rx="3"/>
+  <rect x="5" y="65" width="40" height="30" stroke-width="1" stroke="black" fill="url(#gradRL)"
+rx="3"/>
+  <rect x="55" y="5" width="40" height="30" stroke-width="1" stroke="black" fill="url(#gradTB)" rx="3"/>
+  <rect x="55" y="45" width="40" height="50" stroke-width="1" stroke="black" fill="url(#gradBT)"
+rx="3"/>
+</svg>

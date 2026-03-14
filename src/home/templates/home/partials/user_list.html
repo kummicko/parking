@@ -1,0 +1,79 @@
+{% load serbian_plural %}
+<div id="user-list"
+     class="swap-transition"
+     hx-get="{% url 'home:user_list' %}"
+     hx-trigger="refresh"
+     hx-target="#user-list"
+     hx-swap="outerHTML">
+    <div class="flex items-center mb-3">
+      {% with n=parking_users|length %}
+      <span class="text-sm text-body">
+        {{ n }} {{ n|sr_plural:"korisnik,korisnika,korisnika" }}
+      </span>
+      {% endwith %}
+    </div>
+     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+      {% for u in parking_users %}
+      <div class="card flex flex-col gap-2">
+
+        {# Name + plate #}
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <p class="font-semibold text-heading leading-tight">{{ u.first_name }} {{ u.last_name }}</p>
+            {% if u.phone %}
+            <p class="text-xs text-body mt-0.5">{{ u.phone }}</p>
+            {% endif %}
+            {% if u.email %}
+            <p class="text-xs text-body">{{ u.email }}</p>
+            {% endif %}
+          </div>
+          <span class="font-mono text-xs bg-bg-dark px-2 py-0.5 rounded border border-default text-heading whitespace-nowrap flex-shrink-0">
+            {{ u.plate }}
+          </span>
+        </div>
+
+        {# Active subscription #}
+        {% with sub=u.active_subscriptions.first %}
+        {% if sub %}
+        <div class="flex items-center justify-between text-xs bg-success-soft border border-success-subtle rounded-md px-2 py-1">
+          <span class="text-success font-medium">Mesto {{ sub.spot.number }}</span>
+          <span class="text-success">od {{ sub.start_date|date:"d.m.Y" }}</span>
+        </div>
+        {% else %}
+        <div class="text-xs bg-bg-dark border border-default rounded-md px-2 py-1 text-body italic">
+          Nema aktivne pretplate
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {# Debt #}
+        {% with debt=u.total_debt %}
+        <div class="flex items-center justify-between pt-1 border-t border-default">
+          <span class="text-xs text-body">Dug</span>
+          <span class="text-sm font-bold
+            {% if debt > 0 %}text-danger
+            {% elif debt < 0 %}text-success
+            {% else %}text-body{% endif %}">
+            {{ debt }} RSD
+          </span>
+        </div>
+        {% endwith %}
+
+        {# Notes if any #}
+        {% if u.notes %}
+        <p class="text-xs text-body italic border-t border-default pt-1 truncate" title="{{ u.notes }}">{{ u.notes }}</p>
+        {% endif %}
+
+        {# Actions #}
+        <div class="flex gap-2 pt-1">
+          <button onclick="openGlobalModal('{% url 'home:edit_user_form' u.pk %}')"
+            class="btn btn-gray btn-xs flex-1 text-center">Detalji</button>
+          <a href="#" class="btn btn-brand btn-xs flex-1 text-center">Uplata</a>
+        </div>
+
+      </div>
+      {% empty %}
+      <p class="text-sm text-body col-span-full py-8 text-center">Nema registrovanih korisnika.</p>
+      {% endfor %}
+    </div>
+</div>

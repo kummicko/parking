@@ -38,7 +38,7 @@ class ParkingUser(models.Model):
     phone = models.CharField(max_length=20, blank=True, verbose_name="Telefon")
     email = models.EmailField(blank=True, verbose_name="Email")
     plate = models.CharField(
-        max_length=20, unique=True, verbose_name="Registarska oznaka"
+        max_length=20, blank=True, verbose_name="Registarska oznaka"
     )
     notes = models.TextField(blank=True, verbose_name="Napomena")
     created_at = models.DateTimeField(
@@ -256,8 +256,6 @@ class Payment(models.Model):
         related_name="payments",
         verbose_name="Pretplata",
     )
-    period_from = models.DateField(verbose_name="Period od")
-    period_to = models.DateField(verbose_name="Period do")
     amount = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Iznos")
     paid_date = models.DateField(default=timezone.now, verbose_name="Datum uplate")
     method = models.CharField(
@@ -269,22 +267,8 @@ class Payment(models.Model):
     note = models.TextField(blank=True, verbose_name="Napomena")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Datum kreiranja")
 
-    @property
-    def months_covered(self):
-        """Broj meseci koje ova uplata pokriva."""
-        return (
-            (self.period_to.year - self.period_from.year) * 12
-            + (self.period_to.month - self.period_from.month)
-            + 1
-        )
-
     def __str__(self):
-        if (
-            self.period_from.month == self.period_to.month
-            and self.period_from.year == self.period_to.year
-        ):
-            return f"{self.subscription.user} — {self.period_from.strftime('%m/%Y')}"
-        return f"{self.subscription.user} — {self.period_from.strftime('%m/%Y')} do {self.period_to.strftime('%m/%Y')}"
+        return f"{self.subscription.user} — {self.amount} RSD ({self.paid_date.strftime('%d.%m.%Y')})"
 
     class Meta:
         verbose_name = "Uplata"

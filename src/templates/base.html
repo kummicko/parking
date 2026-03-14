@@ -21,6 +21,11 @@
     }
   </style>
   <link rel="stylesheet" href="{% static 'css/ui.css' %}">
+  <script src="{% static 'vendor/htmx/htmx.min.js' %}" defer></script>
+  <script src="{% static 'vendor/alpine/alpine.min.js' %}" defer></script>
+  <script src="{% static 'vendor/sweetalert/sweetalert.min.js' %}"></script>
+  <script src="{% static 'vendor/sortable/sortablejs.min.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'vendor/sweetalert/sweetalert.min.css' %}">
 </head>
 <body x-data="themeSwitcher()" class="h-screen">
     {% block main_content %}{% endblock main_content %}
@@ -36,7 +41,47 @@
         };
       }
     </script>
+    <script>
+    function showToast(type, message) {
+
+      let container = document.getElementById("toast-container")
+
+      if (!container) {
+        container = document.createElement("div")
+        container.id = "toast-container"
+        container.className = "fixed top-6 right-6 z-[9999] flex flex-col gap-3"
+        document.body.appendChild(container)
+      }
+
+      const toast = document.createElement("div")
+
+      toast.className = `toast toast-${type ?? "success"} toast-enter`
+
+      const icons = {
+        success: "✓",
+        danger: "✕",
+        warning: "⚠"
+      }
+
+      toast.innerHTML = `
+        <span class="toast-icon">${icons[type] ?? icons.success}</span>
+        <span class="toast-message">${message}</span>
+      `
+
+      container.appendChild(toast)
+
+      setTimeout(() => {
+        toast.classList.remove("toast-enter")
+        toast.classList.add("toast-exit")
+
+        setTimeout(() => toast.remove(), 250)
+      }, 3500)
+    }
+    </script>
+    {% block message_scripts %}{% endblock message_scripts %}
     {% block scripts %}
     {% endblock scripts %}
+    {% block modal_scripts %}
+    {% endblock modal_scripts %}
 </body>
 </html>

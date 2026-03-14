@@ -18,11 +18,9 @@ from .models import (
 
 @admin.register(ParkingConfig)
 class ParkingConfigAdmin(admin.ModelAdmin):
-    fields = ("monthly_price", "updated_at")
-    readonly_fields = ("updated_at",)
+    fields = ("monthly_price",)
 
     def has_add_permission(self, request):
-        # Allow adding only if the singleton doesn't exist yet
         return not ParkingConfig.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
@@ -39,7 +37,7 @@ class ParkingSpotAdmin(admin.ModelAdmin):
     list_display = ("number", "is_active", "available_display", "notes")
     list_filter = ("is_active",)
     search_fields = ("number", "notes")
-    readonly_fields = ("number",)
+    exclude = ("number",)
 
     @admin.display(description="Slobodno", boolean=True)
     def available_display(self, obj):
@@ -54,7 +52,7 @@ class ParkingSpotAdmin(admin.ModelAdmin):
 class PaymentInline(admin.TabularInline):
     model = Payment
     extra = 0
-    fields = ("period_from", "period_to", "amount", "method", "paid_date", "note")
+    fields = ("amount", "method", "paid_date", "note")
     ordering = ("-paid_date",)
 
 
@@ -85,13 +83,6 @@ class SubscriptionAdmin(admin.ModelAdmin):
         "spot__number",
     )
     autocomplete_fields = ("user", "spot")
-    readonly_fields = (
-        "created_at",
-        "updated_at",
-        "charged_display",
-        "paid_display",
-        "debt_display",
-    )
     inlines = [PaymentInline]
 
     fieldsets = (
@@ -105,19 +96,6 @@ class SubscriptionAdmin(admin.ModelAdmin):
             "Period",
             {
                 "fields": ("start_date", "end_date", "monthly_price"),
-            },
-        ),
-        (
-            "Finansije",
-            {
-                "fields": ("charged_display", "paid_display", "debt_display"),
-            },
-        ),
-        (
-            "Metapodaci",
-            {
-                "fields": ("created_at", "updated_at"),
-                "classes": ("collapse",),
             },
         ),
     )
@@ -160,6 +138,9 @@ class SubscriptionInline(admin.TabularInline):
     readonly_fields = ("status",)
     show_change_link = True
 
+    def has_change_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(ParkingUser)
 class ParkingUserAdmin(admin.ModelAdmin):
@@ -174,7 +155,6 @@ class ParkingUserAdmin(admin.ModelAdmin):
         "created_at",
     )
     search_fields = ("first_name", "last_name", "plate", "phone", "email")
-    readonly_fields = ("created_at",)
     inlines = [SubscriptionInline]
 
     fieldsets = (
@@ -193,7 +173,7 @@ class ParkingUserAdmin(admin.ModelAdmin):
         (
             "Ostalo",
             {
-                "fields": ("notes", "created_at"),
+                "fields": ("notes",),
             },
         ),
     )
@@ -223,9 +203,6 @@ class ParkingUserAdmin(admin.ModelAdmin):
 class PaymentAdmin(admin.ModelAdmin):
     list_display = (
         "subscription",
-        "period_from",
-        "period_to",
-        "months_covered_display",
         "amount",
         "method",
         "paid_date",
@@ -237,11 +214,6 @@ class PaymentAdmin(admin.ModelAdmin):
         "subscription__user__plate",
     )
     autocomplete_fields = ("subscription",)
-    readonly_fields = ("created_at", "months_covered_display")
-
-    @admin.display(description="Pokriveno meseci")
-    def months_covered_display(self, obj):
-        return obj.months_covered
 
 
 # ──────────────────────────────────────────────

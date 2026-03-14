@@ -1,0 +1,72 @@
+<form hx-post="{% url 'home:create_user' %}"
+      hx-target="#modal-body"
+      hx-swap="innerHTML">
+  {% csrf_token %}
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+
+    <div class="flex flex-col gap-1">
+      <label class="form-label">Ime <span class="text-danger">*</span></label>
+      <input type="text" name="first_name" value="{{ form.first_name.value|default:'' }}"
+             class="form-input {% if form.first_name.errors %}border-danger ring-1 ring-danger{% endif %}"
+             placeholder="Ime" autofocus>
+      {% for e in form.first_name.errors %}
+        <p class="text-xs text-danger mt-0.5">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="form-label">Prezime <span class="text-danger">*</span></label>
+      <input type="text" name="last_name" value="{{ form.last_name.value|default:'' }}"
+             class="form-input {% if form.last_name.errors %}border-danger ring-1 ring-danger{% endif %}"
+             placeholder="Prezime">
+      {% for e in form.last_name.errors %}
+        <p class="text-xs text-danger mt-0.5">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="form-label">Registarska oznaka</label>
+      <input type="text" name="plate" value="{{ form.plate.value|default:'' }}"
+             class="form-input font-mono uppercase {% if form.plate.errors %}border-danger ring-1 ring-danger{% endif %}"
+             >
+      {% for e in form.plate.errors %}
+        <p class="text-xs text-danger mt-0.5">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="form-label">Telefon</label>
+      <input type="text" name="phone" value="{{ form.phone.value|default:'' }}"
+             class="form-input"
+             >
+    </div>
+
+    <div class="flex flex-col gap-1 sm:col-span-2">
+      <label class="form-label">Email</label>
+      <input type="email" name="email" value="{{ form.email.value|default:'' }}"
+             class="form-input {% if form.email.errors %}border-danger ring-1 ring-danger{% endif %}"
+             >
+      {% for e in form.email.errors %}
+        <p class="text-xs text-danger mt-0.5">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="flex flex-col gap-1 sm:col-span-2">
+      <label class="form-label">Napomena</label>
+      <textarea name="notes" rows="2"
+                class="form-input resize-none"
+                placeholder="Opciona napomena...">{{ form.notes.value|default:'' }}</textarea>
+    </div>
+
+  </div>
+
+  <div class="flex justify-end gap-2 pt-3 border-t border-default">
+    <button type="button" onclick="closeGlobalModal()"
+            class="btn btn-gray btn-sm">Otkaži</button>
+    <button type="submit"
+            class="btn btn-primary btn-sm">
+      Sačuvaj korisnika
+    </button>
+  </div>
+</form>

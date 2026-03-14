@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+<div class="flex max-h-screen overflow-hidden" x-data="{sidebarOpened: false, newClientModalOpen: false, aiSidebarOpened: false}">
+  <nav style="background-image: var(--sidebar-bg);"
+    class='absolute inset-0 duration-200 lg:relative z-10 w-80 text-white max-h-screen overflow-y-auto p-3 flex flex-col lg:translate-x-0 lg:opacity-100 bg-repeat'
+    :class="{'translate-x-0 ease-in':sidebarOpened === true, '-translate-x-full ease-out opacity-0': sidebarOpened === false}">
+    <div class="flex justify-end lg:hidden">
+      <button class="p-2 focus:outline-none focus:bg-gray-800 hover:bg-gray-800 rounded-md lg:hidden"
+        @click="sidebarOpened = false">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+    </div>
+    <div class="flex-grow flex flex-col justify-between">
+      <div class="pt-24">
+
+        <a href="{% url 'home:index' %}">
+          <div class="{% if request.resolver_match.url_name == 'index' %}sidebar-link-active{% else %}sidebar-link{% endif %} flex gap-4 items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            <span>Dashboard</span>
+          </div>
+        </a>
+        
+        <a href="{% url 'home:users' %}">
+          <div class="{% if request.resolver_match.url_name == 'users' %}sidebar-link-active{% else %}sidebar-link{% endif %} flex gap-4 items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-4a4 4 0 100-8 4 4 0 000 8zm6 4a2 2 0 100-4 2 2 0 000 4zM5 16a2 2 0 100-4 2 2 0 000 4z" />
+            </svg>
+            <span>Korisnici</span>
+          </div>
+        </a>
+        {% block links %}
+        {% endblock links %}
+      </div>
+      <div>
+        <a href="#">
+          <div class="sidebar-link flex gap-4 items-center text-text">
+            {% include "svg/logout.svg" %}
+            <span>Odjava</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div id="main-right" class="h-screen relative z-0 flex-grow flex flex-col overflow-hidden">
+    <header class="bg-bg-dark text-text flex-shrink-0 flex items-center px-3 py-1 shadow shadow-black/30 dark:shadow-none z-10">
+      <span class="p-2 focus:outline-none focus:bg-gray-100 hover:bg-gray-100 rounded-md lg:hidden"
+        @click="sidebarOpened = true">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </span>
+      <div class="flex-grow flex justify-center py-4">
+        <h1 class="text-xl lg:text-2xl font-bold text-gray-800 dark:text-gray-100">
+          {% block nav_title %}{% endblock nav_title %}
+        </h1>
+      </div>
+      <button @click="toggleTheme()"
+        class="p-2 rounded-full bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 transition">
+        <svg x-show="darkMode" x-cloak class="w-6 h-6 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 3v1m0 16v1m8.66-9h-1.66M4 12H2m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707M17.657 6.343l-.707.707M6.343 17.657l-.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+        </svg>
+        <svg x-show="!darkMode" x-cloak class="w-6 h-6 text-gray-900" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+          viewBox="0 0 24 24">
+          <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
+        </svg>
+      </button>
+    </header>
+
+    <!-- This container is the positioning root for the aside.
+         overflow-hidden clips the aside as it slides off-screen. -->
+    <div class="relative flex-1 overflow-hidden">
+
+      <!-- Main scrollable content — always full width, never pushed -->
+      <div id="main" class="absolute inset-0 overflow-y-auto overflow-x-hidden bg-bg-dark">
+        <div class="min-h-full p-2 text-text">
+          {% block content %}
+          {% endblock content %}
+        </div>
+      </div>
+
+      <!-- AI Sidebar — absolutely positioned, slides over content, never affects layout -->
+      <aside class="absolute top-0 right-0 bottom-0 w-80 flex flex-col bg-bg-light border-l border-default shadow-2xl z-20"
+             style="will-change: transform; transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(100%);"
+             x-effect="$el.style.transform = aiSidebarOpened ? 'translateX(0)' : 'translateX(100%)'">
+
+        <!-- Header -->
+        <div class="p-4 border-b border-default flex justify-between items-center bg-bg text-text flex-shrink-0">
+          <div class="flex items-center gap-3">
+              <h3 class="font-bold">AI Asistent</h3>
+          </div>
+          <button @click="aiSidebarOpened = false"
+                  class="hover:text-white/70 text-2xl leading-none transition-colors duration-150">&times;</button>
+        </div>
+
+        <!-- Chat messages -->
+        <div id="ai-chat-container" class="flex-grow overflow-y-auto p-4 space-y-4 bg-bg-dark">
+          <div class="bg-brand-soft dark:bg-brand-soft/20 border border-brand-subtle text-body p-3 rounded-lg text-sm">
+            Ja sam tvoj AI asistent. Kako mogu da ti pomognem danas?
+          </div>
+        </div>
+
+        <!-- Input area -->
+      </aside>
+
+    </div><!-- end positioning root -->
+
+    <!-- FAB -->
+    <div class="fixed bottom-6 right-6 z-40" x-show="!aiSidebarOpened" x-transition>
+      <button @click="aiSidebarOpened = true"
+              class="bg-brand hover:scale-110 transition-transform text-white p-2 rounded-full shadow-lg flex items-center justify-center">
+        {% include "svg/ai_sparkle.svg" %}
+      </button>
+    </div>
+
+  </div><!-- end #main-right -->
+</div>
+
+
+<dialog id="global-modal"
+        style="position:fixed;inset:0;margin:0;height:100%;width:100%;max-width:none;max-height:none;border:none;background:transparent;padding:0;">
+  <div id="global-modal-content"
+       class="relative w-full h-full flex flex-col bg-black/60 backdrop-blur-sm animate-backdrop-in">
+    <button onclick="closeGlobalModal()"
+            class="absolute top-4 right-8 text-white text-6xl cursor-pointer hover:opacity-70 z-50">
+        &times;
+    </button>
+    <div class="flex h-full justify-center items-center p-4">
+      <div id="modal-body"
+           class="bg-bg-dark p-4 rounded-lg w-full md:w-[60%] max-h-[80vh] overflow-y-auto animate-modal-in shadow-2xl">
+        <div class="p-1">
+          <p class="break-words">
+            Tekst je sada vidljiv i modal je bolje balansiran...
+          </p>
+          <div class="mt-6 flex justify-end">
+            <button onclick="closeGlobalModal()" class="btn btn-brand btn-sm">Zatvori</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</dialog>
+{% endblock main_content %}
+
+{% block message_scripts %}
+  {% if messages %}
+  <script>
+    {% for message in messages %}
+      showToast('{{ message.tags }}', '{{ message }}');
+    {% endfor %}
+  </script>
+  {% endif %}
+{% endblock message_scripts %}
+{% block modal_scripts %}
+<script>
+function openGlobalModal(url) {
+  const modal = document.getElementById("global-modal");
+  const content = document.getElementById("global-modal-content");
+  content.classList.remove("animate-modal-out");
+  content.classList.add("animate-modal-in");
+  htmx.ajax('GET', url, {
+    target: '#modal-body',
+    swap: 'innerHTML',
+    source: document.body
+  });
+  modal.showModal();
+}
+function closeGlobalModal() {
+  const content = document.getElementById('global-modal-content');
+  const modal = document.getElementById('global-modal');
+  const card = content.querySelector('.animate-modal-in');
+  content.style.animation = "backdrop-out 0.5s ease forwards";
+  if (card) card.style.animation = "modal-out 0.5s ease forwards";
+  setTimeout(() => {
+    modal.close();
+    content.style.animation = "";
+    if (card) card.style.animation = "";
+  }, 500);
+}
+document.body.addEventListener('showToast', (e) => {
+  showToast(e.detail.type, e.detail.message);
+});
+
+document.body.addEventListener('closeModal', (e) => {
+  closeGlobalModal();
+  const id = e.detail?.refreshId;
+  if (id) {
+    const el = document.getElementById(id);
+    if (el) htmx.trigger(el, 'refresh');
+  }
+});
+
+var modalContent = document.getElementById('global-modal-content');
+modalContent.addEventListener('click', (e) => {
+  const modalBody = document.getElementById('modal-body');
+  if (!modalBody.contains(e.target)) {
+    closeGlobalModal();
+  }
+});
+document.body.addEventListener('htmx:oobErrorNoTarget', function (evt) {
+  console.error('OOB Error - content:', evt.detail.content);
+  console.error('OOB Error - content id:', evt.detail.content?.id);
+  console.error('OOB Error - content outerHTML:', evt.detail.content?.outerHTML);
+  console.error('OOB Error - elt:', evt.detail.elt);
+});
+document.body.addEventListener("redirectTo", function (e) {
+    console.log(e.detail)
+    setTimeout(() => {
+        window.location.href = e.detail.url;
+    }, 2000); // 2 second delay so user can read the response
+});
+</script>
+{% endblock modal_scripts %}
