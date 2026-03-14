@@ -8,4 +8,7 @@ services:
     user: "${APP_UID}:${APP_GID}"
     env_file: .env
     volumes:
-      - ./src/db:/app/src/db
+      - db_data:/app/src/db
+
+volumes:
+  db_data:
