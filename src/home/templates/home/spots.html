@@ -1,0 +1,29 @@
+{% extends "base_main.html" %}
+
+{% block nav_title %}Parking Mesta{% endblock nav_title %}
+
+{% block content %}
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-6">
+  <div class="relative flex-1">
+    <input type="search" 
+           name="q" 
+           placeholder="Pretraži po broju mesta..." 
+           class="form-input w-full pl-10"
+           hx-get="{% url 'home:spot_list' %}"
+           hx-trigger="input changed delay:300ms, search"
+           hx-target="#spot-list"
+           hx-swap="outerHTML">
+    <span class="absolute left-3 top-2.5 text-gray-400">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    </span>
+  </div>
+  
+  <button onclick="openGlobalModal('{% url 'home:create_spot_form' %}')" 
+          class="btn btn-primary btn-sm whitespace-nowrap self-end sm:self-auto flex-shrink-0">+ Novo mesto
+  </button>
+</div>
+
+<div>
+    {% include "home/partials/spot_list.html" %}
+</div>
+{% endblock content %}

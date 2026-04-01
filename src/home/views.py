@@ -3,8 +3,9 @@ from django.views.decorators.http import require_POST
 from django.http import HttpResponse
 from django.db.models import Sum, Q
 from django.utils import timezone
-from .models import ParkingUser, ParkingSpot, Subscription, Payment
-from .forms import ParkingUserForm
+from .models import ParkingUser, ParkingSpot, Payment
+from .forms import ParkingUserForm, ParkingSpotForm
+from django.db import models
 
 
 def index(request):
@@ -15,12 +16,16 @@ def index(request):
 
     occupied_spots = (
         ParkingSpot.objects.filter(
-            is_active=True, subscriptions__status=Subscription.Status.ACTIVE
+            is_active=True,
+            subscriptions__start_date__lte=today,
+        )
+        .filter(
+            models.Q(subscriptions__auto_renew=True)
+            | models.Q(subscriptions__end_date__gte=today)
         )
         .distinct()
         .count()
     )
-
     free_spots = total_spots - occupied_spots
     free_pct = round((free_spots / total_spots * 100) if total_spots else 0)
     occupied_pct = round((occupied_spots / total_spots * 100) if total_spots else 0)
@@ -130,11 +135,100 @@ def edit_user(request, pk):
     form = ParkingUserForm(request.POST, instance=user)
     if form.is_valid():
         form.save()
-        response = HttpResponse(status=204)
-        response["HX-Trigger"] = (
-            '{"showToast": {"type": "success", "message": "Korisnik uspesno izmenjen!"}, "closeModal": {"refreshId": "user-list"}}'
-        )
-        return response
+        # Vraćamo prazan odgovor sa script tagom koji okida događaje na klijentu
+        script = """
+        <script>
+            showToast('success', 'Izmene sačuvane!');
+            document.body.dispatchEvent(new CustomEvent('closeModal', {
+                detail: { refreshId: 'user-list' }
+            }));
+        </script>
+        """
+        return HttpResponse(script)
     return render(
         request, "home/partials/edit_user_form.html", {"form": form, "user": user}
+    )
+
+
+def get_spots_queryset(q=None):
+    qs = ParkingSpot.objects.prefetch_related("subscriptions__user")
+
+    if q:
+        qs = qs.filter(number__icontains=q)
+
+    return qs
+
+
+def spots(request):
+    parking_spots = get_spots_queryset()
+
+    return render(
+        request,
+        "home/spots.html",
+        {
+            "parking_spots": parking_spots,
+            "total_count": parking_spots.count(),
+            "active_count": parking_spots.filter(is_active=True).count(),
+        },
+    )
+
+
+def spot_list(request):
+    q = request.GET.get("q", "").strip()
+    parking_spots = get_spots_queryset(q)
+
+    return render(
+        request,
+        "home/partials/spot_list.html",
+        {"parking_spots": parking_spots},
+    )
+
+
+def create_spot_form(request):
+    return render(
+        request, "home/partials/create_spot_form.html", {"form": ParkingSpotForm()}
+    )
+
+
+@require_POST
+def create_spot(request):
+    form = ParkingSpotForm(request.POST)
+    if form.is_valid():
+        form.save()
+        response = HttpResponse(status=204)
+        response["HX-Trigger"] = (
+            '{"showToast": {"type": "success", "message": "Parking mesto kreirano!"}, "closeModal": {"refreshId": "spot-list"}}'
+        )
+        return response
+    return render(request, "home/partials/create_spot_form.html", {"form": form})
+
+
+def edit_spot_form(request, pk):
+    spot = get_object_or_404(ParkingSpot, pk=pk)
+    form = ParkingSpotForm(instance=spot)
+    return render(
+        request, "home/partials/edit_spot_form.html", {"form": form, "spot": spot}
+    )
+
+
+@require_POST
+def edit_spot(request, pk):
+    spot = get_object_or_404(ParkingSpot, pk=pk)
+    form = ParkingSpotForm(request.POST, instance=spot)
+
+    if form.is_valid():
+        form.save()
+        # Vraćamo prazan odgovor sa script tagom koji okida događaje na klijentu
+        script = """
+        <script>
+            showToast('success', 'Izmene sačuvane!');
+            document.body.dispatchEvent(new CustomEvent('closeModal', {
+                detail: { refreshId: 'spot-list' }
+            }));
+        </script>
+        """
+        return HttpResponse(script)
+
+    return render(
+        request, "home/partials/edit_spot_form.html", {"form": form, "spot": spot}
     )

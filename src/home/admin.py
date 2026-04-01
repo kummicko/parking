@@ -37,7 +37,7 @@ class ParkingSpotAdmin(admin.ModelAdmin):
     list_display = ("number", "is_active", "available_display", "notes")
     list_filter = ("is_active",)
     search_fields = ("number", "notes")
-    exclude = ("number",)
+    fields = ("number", "is_active", "notes")
 
     @admin.display(description="Slobodno", boolean=True)
     def available_display(self, obj):
@@ -66,7 +66,6 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_display = (
         "user",
         "spot",
-        "status",
         "start_date",
         "end_date",
         "auto_renew",
@@ -75,7 +74,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
         "paid_display",
         "debt_display",
     )
-    list_filter = ("status", "auto_renew", "spot")
+    list_filter = ("auto_renew", "spot")
     search_fields = (
         "user__first_name",
         "user__last_name",
@@ -89,7 +88,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
         (
             None,
             {
-                "fields": ("user", "spot", "status", "auto_renew"),
+                "fields": ("user", "spot", "auto_renew"),
             },
         ),
         (
@@ -134,8 +133,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
 class SubscriptionInline(admin.TabularInline):
     model = Subscription
     extra = 0
-    fields = ("spot", "status", "start_date", "end_date", "auto_renew", "monthly_price")
-    readonly_fields = ("status",)
+    fields = ("spot", "start_date", "end_date", "auto_renew", "monthly_price")
     show_change_link = True
 
     def has_change_permission(self, request, obj=None):

@@ -1,0 +1,66 @@
+<div id="spot-list"
+     hx-get="{% url 'home:spot_list' %}"
+     hx-trigger="refresh"
+     hx-target="#spot-list"
+     hx-swap="outerHTML"
+     class="swap-transition grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full hx-fade-in">
+
+  {% for spot in parking_spots %}
+  <div class="card p-4 flex flex-col justify-between border-l-4
+    {% if not spot.is_active %}border-default opacity-60
+    {% elif spot.is_available %}border-success
+    {% else %}border-danger{% endif %}">
+
+    <div>
+      <div class="flex justify-between items-start">
+        <h3 class="text-lg font-bold text-heading">{{ spot.number }}</h3>
+        <button
+          onclick="openGlobalModal('{% url 'home:edit_spot_form' spot.pk %}')"
+          class="btn btn-gray btn-xs icon-btn">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+          </svg>
+        </button>
+      </div>
+
+      <p class="text-sm my-3">
+        {% if not spot.is_active %}
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
+                        bg-neutral-tertiary text-body border border-default">
+            Van upotrebe
+          </span>
+
+        {% elif spot.active_subscription %}
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium
+                      bg-danger-soft dark:bg-danger-soft/20 
+                      text-danger dark:text-danger-medium 
+                      border border-danger-subtle dark:border-danger-subtle/40">
+            {{ spot.active_subscription.user }}
+            <span class="text-xs opacity-70">
+              od {{ spot.active_subscription.start_date|date:"d.m.Y" }}
+            </span>
+          </span>
+        {% else %}
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium
+                      bg-success-soft dark:bg-success-soft/20 
+                      text-success dark:text-success-medium 
+                      border border-success-subtle dark:border-success-subtle/40">
+            Slobodno
+          </span>
+        {% endif %}
+      </p>
+
+      {% if spot.notes %}
+        <p class="card-text mt-2 italic line-clamp-2">{{ spot.notes }}</p>
+      {% endif %}
+    </div>
+
+  </div>
+
+  {% empty %}
+  <div class="col-span-full py-12 text-center text-body">
+    Nema pronađenih parking mesta.
+  </div>
+  {% endfor %}
+
+</div>
