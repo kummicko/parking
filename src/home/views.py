@@ -4,8 +4,16 @@ from django.views.decorators.http import require_POST
 from django.http import HttpResponse
 from django.db.models import Sum, Q
 from django.utils import timezone
-from .models import ParkingUser, ParkingSpot, Payment, ParkingConfig
-from .forms import ParkingUserForm, ParkingSpotForm, ParkingConfigForm
+from django.urls import reverse
+from django.contrib import messages
+from .models import ParkingUser, ParkingSpot, Payment, ParkingConfig, Subscription
+from .forms import (
+    ParkingUserForm,
+    ParkingSpotForm,
+    ParkingConfigForm,
+    PaymentForm,
+    SubscriptionForm,
+)
 from django.db import models
 
 
@@ -46,21 +54,21 @@ def index(request):
 
     # ── Total debt across all users ───────────────────────────────────────────
     users = ParkingUser.objects.prefetch_related(
-        "subscriptions__payments",
         "subscriptions__spot",
     ).all()
 
     total_debt = sum(u.total_debt() for u in users)
 
     # ── Recent payments (last 10) ─────────────────────────────────────────────
-    recent_payments = Payment.objects.select_related(
-        "subscription__user", "subscription__spot"
-    ).order_by("-paid_date", "-created_at")[:10]
+    recent_payments = (
+        Payment.objects.select_related("user")
+        .filter(user__isnull=False)
+        .order_by("-paid_date", "-created_at")[:10]
+    )
 
     # ── Spots with subscription info for table ────────────────────────────────
     spots = ParkingSpot.objects.prefetch_related(
         "subscriptions__user",
-        "subscriptions__payments",
     ).order_by("number")
 
     stats = {
@@ -89,7 +97,6 @@ def index(request):
 
 def users(request):
     parking_users = ParkingUser.objects.prefetch_related(
-        "subscriptions__payments",
         "subscriptions__spot",
     ).all()
 
@@ -122,7 +129,6 @@ def create_user(request):
 def user_list(request):
     q = request.GET.get("q", "").strip()
     parking_users = ParkingUser.objects.prefetch_related(
-        "subscriptions__payments",
         "subscriptions__spot",
     ).all()
     if q:
@@ -134,6 +140,27 @@ def user_list(request):
         )
     return render(
         request, "home/partials/user_list.html", {"parking_users": parking_users}
+    )
+
+
+def user_detail(request, pk):
+    user = get_object_or_404(
+        ParkingUser.objects.prefetch_related(
+            "subscriptions__spot",
+        ),
+        pk=pk,
+    )
+    subscriptions = user.subscriptions.all().order_by("-start_date")
+    payments = Payment.objects.filter(user=user).order_by("-paid_date", "-created_at")
+
+    return render(
+        request,
+        "home/user_detail.html",
+        {
+            "user": user,
+            "subscriptions": subscriptions,
+            "payments": payments,
+        },
     )
 
 
@@ -151,18 +178,165 @@ def edit_user(request, pk):
     form = ParkingUserForm(request.POST, instance=user)
     if form.is_valid():
         form.save()
-        # Vraćamo prazan odgovor sa script tagom koji okida događaje na klijentu
-        script = """
+        detail_url = reverse("home:user_detail", kwargs={"pk": user.pk})
+        messages.success(request, "Izmene sačuvane!")
+        script = f"""
         <script>
-            showToast('success', 'Izmene sačuvane!');
-            document.body.dispatchEvent(new CustomEvent('closeModal', {
-                detail: { refreshId: 'user-list' }
-            }));
+            window.location.href = '{detail_url}';
         </script>
         """
         return HttpResponse(script)
     return render(
         request, "home/partials/edit_user_form.html", {"form": form, "user": user}
+    )
+
+
+def create_payment_form(request, pk):
+    user = get_object_or_404(ParkingUser, pk=pk)
+    from datetime import date
+
+    form = PaymentForm(initial={"paid_date": date.today()})
+    return render(
+        request,
+        "home/partials/create_payment_form.html",
+        {"form": form, "user": user},
+    )
+
+
+@require_POST
+def create_payment(request, pk):
+    user = get_object_or_404(ParkingUser, pk=pk)
+    form = PaymentForm(request.POST)
+    if form.is_valid():
+        payment = form.save(commit=False)
+        payment.user = user
+        payment.save()
+        detail_url = reverse("home:user_detail", kwargs={"pk": user.pk})
+        messages.success(request, "Uplata uspešno sačuvana!")
+        script = f"""
+        <script>
+            window.location.href = '{detail_url}';
+        </script>
+        """
+        return HttpResponse(script)
+    return render(
+        request,
+        "home/partials/create_payment_form.html",
+        {"form": form, "user": user},
+    )
+
+
+def edit_payment_form(request, payment_pk):
+    payment = get_object_or_404(Payment, pk=payment_pk)
+    form = PaymentForm(instance=payment)
+    return render(
+        request,
+        "home/partials/edit_payment_form.html",
+        {"form": form, "payment": payment},
+    )
+
+
+@require_POST
+def edit_payment(request, payment_pk):
+    payment = get_object_or_404(Payment, pk=payment_pk)
+    form = PaymentForm(request.POST, instance=payment)
+    if form.is_valid():
+        form.save()
+        detail_url = reverse("home:user_detail", kwargs={"pk": payment.user.pk})
+        messages.success(request, "Uplata uspešno izmenjena!")
+        script = f"""
+        <script>
+            window.location.href = '{detail_url}';
+        </script>
+        """
+        return HttpResponse(script)
+    return render(
+        request,
+        "home/partials/edit_payment_form.html",
+        {"form": form, "payment": payment},
+    )
+
+
+def create_subscription_form(request, pk):
+    user = get_object_or_404(ParkingUser, pk=pk)
+    form = SubscriptionForm()
+    return render(
+        request,
+        "home/partials/create_subscription_form.html",
+        {"form": form, "user": user},
+    )
+
+
+@require_POST
+def create_subscription(request, pk):
+    user = get_object_or_404(ParkingUser, pk=pk)
+    form = SubscriptionForm(request.POST)
+    if form.is_valid():
+        subscription = form.save(commit=False)
+        subscription.user = user
+        try:
+            subscription.full_clean()  # run clean() with user already set
+        except Exception as e:
+            form.add_error(None, e)
+            return render(
+                request,
+                "home/partials/create_subscription_form.html",
+                {"form": form, "user": user},
+            )
+        subscription.save()
+        detail_url = reverse("home:user_detail", kwargs={"pk": user.pk})
+        messages.success(request, "Pretplata uspešno kreirana!")
+        script = f"""
+        <script>
+            window.location.href = '{detail_url}';
+        </script>
+        """
+        return HttpResponse(script)
+    return render(
+        request,
+        "home/partials/create_subscription_form.html",
+        {"form": form, "user": user},
+    )
+
+
+def edit_subscription_form(request, sub_pk):
+    subscription = get_object_or_404(Subscription, pk=sub_pk)
+    form = SubscriptionForm(instance=subscription)
+    return render(
+        request,
+        "home/partials/edit_subscription_form.html",
+        {"form": form, "subscription": subscription},
+    )
+
+
+@require_POST
+def edit_subscription(request, sub_pk):
+    subscription = get_object_or_404(Subscription, pk=sub_pk)
+    form = SubscriptionForm(request.POST, instance=subscription)
+    if form.is_valid():
+        subscription = form.save(commit=False)
+        try:
+            subscription.full_clean()
+        except Exception as e:
+            form.add_error(None, e)
+            return render(
+                request,
+                "home/partials/edit_subscription_form.html",
+                {"form": form, "subscription": subscription},
+            )
+        subscription.save()
+        detail_url = reverse("home:user_detail", kwargs={"pk": subscription.user.pk})
+        messages.success(request, "Pretplata uspešno izmenjena!")
+        script = f"""
+        <script>
+            window.location.href = '{detail_url}';
+        </script>
+        """
+        return HttpResponse(script)
+    return render(
+        request,
+        "home/partials/edit_subscription_form.html",
+        {"form": form, "subscription": subscription},
     )
 
 

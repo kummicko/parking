@@ -214,7 +214,8 @@ document.body.addEventListener('closeModal', (e) => {
 var modalContent = document.getElementById('global-modal-content');
 modalContent.addEventListener('click', (e) => {
   const modalBody = document.getElementById('modal-body');
-  if (!modalBody.contains(e.target)) {
+  const isFlatpickr = e.target.closest('.flatpickr-calendar') || e.target.closest('.flatpickr-input');
+  if (!modalBody.contains(e.target) && !isFlatpickr) {
     closeGlobalModal();
   }
 });

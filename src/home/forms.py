@@ -1,5 +1,5 @@
 from django import forms
-from .models import ParkingUser, ParkingSpot, ParkingConfig
+from .models import ParkingUser, ParkingSpot, ParkingConfig, Payment, Subscription
 
 
 class ParkingUserForm(forms.ModelForm):
@@ -8,6 +8,65 @@ class ParkingUserForm(forms.ModelForm):
         fields = ["first_name", "last_name", "phone", "email", "plate", "notes"]
         widgets = {
             "notes": forms.Textarea(attrs={"rows": 2}),
+        }
+
+
+class SubscriptionForm(forms.ModelForm):
+    start_date = forms.DateField(
+        input_formats=["%d.%m.%Y", "%Y-%m-%d"],
+        widget=forms.DateInput(
+            attrs={"type": "text", "class": "form-input datepicker"},
+            format="%d.%m.%Y",
+        ),
+    )
+    end_date = forms.DateField(
+        input_formats=["%d.%m.%Y", "%Y-%m-%d"],
+        widget=forms.DateInput(
+            attrs={"type": "text", "class": "form-input datepicker"},
+            format="%d.%m.%Y",
+        ),
+        required=False,
+    )
+
+    class Meta:
+        model = Subscription
+        fields = ["spot", "start_date", "end_date", "auto_renew", "monthly_price"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            default_price = ParkingConfig.get().monthly_price
+        except (ValueError, ParkingConfig.DoesNotExist):
+            default_price = None
+        self.fields["monthly_price"].initial = default_price
+        self.fields["monthly_price"].required = False
+        self.fields["monthly_price"].help_text = "Ostavite prazno za podrazumevanu cenu"
+        self.fields["end_date"].help_text = "Ostavite prazno za automatsko obnavljanje"
+        self.fields["spot"].queryset = ParkingSpot.objects.filter(
+            is_active=True
+        ).order_by("number")
+
+
+class PaymentForm(forms.ModelForm):
+    paid_date = forms.DateField(
+        input_formats=["%d.%m.%Y", "%Y-%m-%d"],
+        widget=forms.DateInput(
+            attrs={"type": "text", "class": "form-input datepicker", "placeholder": "dd.mm.gggg"},
+            format="%d.%m.%Y",
+        ),
+    )
+
+    class Meta:
+        model = Payment
+        fields = ["amount", "paid_date", "method", "note"]
+        widgets = {
+            "amount": forms.NumberInput(
+                attrs={"class": "form-input", "step": "0.01", "min": "0"}
+            ),
+            "method": forms.Select(attrs={"class": "form-input"}),
+            "note": forms.Textarea(
+                attrs={"rows": 2, "class": "form-input resize-none"}
+            ),
         }
 
 

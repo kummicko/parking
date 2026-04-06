@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.utils.html import format_html
 
 from .models import (
     AuditLog,
@@ -45,18 +44,6 @@ class ParkingSpotAdmin(admin.ModelAdmin):
 
 
 # ──────────────────────────────────────────────
-# Payment inline (used inside Subscription)
-# ──────────────────────────────────────────────
-
-
-class PaymentInline(admin.TabularInline):
-    model = Payment
-    extra = 0
-    fields = ("amount", "method", "paid_date", "note")
-    ordering = ("-paid_date",)
-
-
-# ──────────────────────────────────────────────
 # Subscription
 # ──────────────────────────────────────────────
 
@@ -70,9 +57,6 @@ class SubscriptionAdmin(admin.ModelAdmin):
         "end_date",
         "auto_renew",
         "monthly_price",
-        "charged_display",
-        "paid_display",
-        "debt_display",
     )
     list_filter = ("auto_renew", "spot")
     search_fields = (
@@ -82,7 +66,6 @@ class SubscriptionAdmin(admin.ModelAdmin):
         "spot__number",
     )
     autocomplete_fields = ("user", "spot")
-    inlines = [PaymentInline]
 
     fieldsets = (
         (
@@ -99,31 +82,6 @@ class SubscriptionAdmin(admin.ModelAdmin):
         ),
     )
 
-    @admin.display(description="Zaduženo (RSD)")
-    def charged_display(self, obj):
-        if not obj.pk or not obj.start_date or not obj.monthly_price:
-            return "—"
-        return obj.total_charged()
-
-    @admin.display(description="Plaćeno (RSD)")
-    def paid_display(self, obj):
-        if not obj.pk:
-            return "—"
-        return obj.total_paid()
-
-    @admin.display(description="Dug (RSD)")
-    def debt_display(self, obj):
-        if not obj.pk or not obj.start_date or not obj.monthly_price:
-            return "—"
-        debt = obj.debt()
-        if debt > 0:
-            return format_html(
-                '<span style="color:red;font-weight:bold">{}</span>', debt
-            )
-        elif debt < 0:
-            return format_html('<span style="color:green">{}</span>', debt)
-        return debt
-
 
 # ──────────────────────────────────────────────
 # ParkingUser
@@ -134,10 +92,13 @@ class SubscriptionInline(admin.TabularInline):
     model = Subscription
     extra = 0
     fields = ("spot", "start_date", "end_date", "auto_renew", "monthly_price")
-    show_change_link = True
 
-    def has_change_permission(self, request, obj=None):
-        return False
+
+class PaymentInline(admin.TabularInline):
+    model = Payment
+    extra = 0
+    fields = ("amount", "method", "paid_date", "note")
+    ordering = ("-paid_date",)
 
 
 @admin.register(ParkingUser)
@@ -153,7 +114,7 @@ class ParkingUserAdmin(admin.ModelAdmin):
         "created_at",
     )
     search_fields = ("first_name", "last_name", "plate", "phone", "email")
-    inlines = [SubscriptionInline]
+    inlines = [SubscriptionInline, PaymentInline]
 
     fieldsets = (
         (
@@ -200,18 +161,18 @@ class ParkingUserAdmin(admin.ModelAdmin):
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
     list_display = (
-        "subscription",
+        "user",
         "amount",
         "method",
         "paid_date",
     )
     list_filter = ("method", "paid_date")
     search_fields = (
-        "subscription__user__first_name",
-        "subscription__user__last_name",
-        "subscription__user__plate",
+        "user__first_name",
+        "user__last_name",
+        "user__plate",
     )
-    autocomplete_fields = ("subscription",)
+    autocomplete_fields = ("user",)
 
 
 # ──────────────────────────────────────────────

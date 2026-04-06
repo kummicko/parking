@@ -1,0 +1,58 @@
+<form hx-post="{% url 'home:create_payment' user.pk %}"
+      hx-target="#modal-body"
+      hx-swap="innerHTML">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+  <div class="mb-3 bg-danger-soft border border-danger text-danger text-sm p-3 rounded">
+    {% for e in form.non_field_errors %}
+    <p>{{ e }}</p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+
+    <div class="flex flex-col gap-1">
+      <label class="form-label">Iznos (RSD) <span class="text-danger">*</span></label>
+      {{ form.amount }}
+      {% for e in form.amount.errors %}
+        <p class="text-xs text-danger mt-0.5">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="form-label">Datum uplate <span class="text-danger">*</span></label>
+      {{ form.paid_date }}
+      {% for e in form.paid_date.errors %}
+        <p class="text-xs text-danger mt-0.5">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="form-label">Način plaćanja <span class="text-danger">*</span></label>
+      {{ form.method }}
+      {% for e in form.method.errors %}
+        <p class="text-xs text-danger mt-0.5">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="flex flex-col gap-1 sm:col-span-2">
+      <label class="form-label">Napomena</label>
+      {{ form.note }}
+      {% for e in form.note.errors %}
+        <p class="text-xs text-danger mt-0.5">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <div class="flex justify-end gap-2 pt-3 border-t border-default">
+    <button type="button" onclick="closeGlobalModal()"
+            class="btn btn-gray btn-sm">Otkaži</button>
+    <button type="submit"
+            class="btn btn-primary btn-sm">
+      Sačuvaj uplatu
+    </button>
+  </div>
+</form>

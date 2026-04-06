@@ -1,0 +1,162 @@
+{% extends "base_main.html" %}
+{% load static %}
+
+{% block nav_title %}{{ user.first_name }} {{ user.last_name }}{% endblock nav_title %}
+
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-4">
+
+  {# ─── USER INFO CARD ──────────────────────────────────────────────────── #}
+  <div class="card p-4">
+    <div class="flex items-start justify-between mb-3">
+      <h2 class="text-lg font-bold text-heading">Osnovni podaci</h2>
+      <button onclick="openGlobalModal('{% url 'home:edit_user_form' user.pk %}')"
+              class="btn btn-gray btn-sm">Izmeni podatke</button>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+      <div>
+        <span class="text-body">Ime i prezime:</span>
+        <p class="font-medium text-heading">{{ user.first_name }} {{ user.last_name }}</p>
+      </div>
+      <div>
+        <span class="text-body">Registarska oznaka:</span>
+        <p class="font-mono bg-bg-dark px-2 py-0.5 rounded border border-default inline-block text-heading">{{ user.plate|default:"—" }}</p>
+      </div>
+      <div>
+        <span class="text-body">Telefon:</span>
+        <p class="text-heading">{{ user.phone|default:"—" }}</p>
+      </div>
+      <div>
+        <span class="text-body">Email:</span>
+        <p class="text-heading">{{ user.email|default:"—" }}</p>
+      </div>
+      {% if user.notes %}
+      <div class="sm:col-span-2">
+        <span class="text-body">Napomena:</span>
+        <p class="text-heading">{{ user.notes }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ─── SUBSCRIPTIONS ───────────────────────────────────────────────────── #}
+  <div class="card p-4">
+    <div class="flex items-start justify-between mb-3">
+      <h2 class="text-lg font-bold text-heading">Zakupi</h2>
+      <button onclick="openGlobalModal('{% url 'home:create_subscription_form' user.pk %}')"
+              class="btn btn-brand btn-sm">Novi zakup</button>
+    </div>
+    {% if subscriptions %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-default">
+            <th class="text-left py-2 px-2 text-body font-medium">Mesto</th>
+            <th class="text-left py-2 px-2 text-body font-medium">Početak</th>
+            <th class="text-left py-2 px-2 text-body font-medium">Ističe</th>
+            <th class="text-left py-2 px-2 text-body font-medium">Cena</th>
+            <th class="text-left py-2 px-2 text-body font-medium">Zaduženo</th>
+            <th class="text-left py-2 px-2 text-body font-medium">Status</th>
+            <th class="text-left py-2 px-2 text-body font-medium">Akcije</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sub in subscriptions %}
+          <tr class="border-b border-default hover:bg-bg">
+            <td class="py-2 px-2 font-medium text-heading">{{ sub.spot.number }}</td>
+            <td class="py-2 px-2 text-heading">{{ sub.start_date|date:"d.m.Y" }}</td>
+            <td class="py-2 px-2 text-heading">
+              {% if sub.auto_renew %}
+                <span class="text-success italic">Auto-obnova</span>
+              {% elif sub.end_date %}
+                {{ sub.end_date|date:"d.m.Y" }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td class="py-2 px-2 text-heading">{{ sub.monthly_price }} RSD</td>
+            <td class="py-2 px-2 text-heading">{{ sub.total_charged }} RSD</td>
+            <td class="py-2 px-2">
+              {% if sub.is_active %}
+                <span class="text-success font-medium">Aktivan</span>
+              {% elif sub.is_expired %}
+                <span class="text-danger font-medium">Istekao</span>
+              {% elif sub.is_pending %}
+                <span class="text-warning font-medium">Čeka se</span>
+              {% else %}
+                <span class="text-body">—</span>
+              {% endif %}
+            </td>
+            <td class="py-2 px-2">
+              <button onclick="openGlobalModal('{% url 'home:edit_subscription_form' sub.pk %}')"
+                      class="btn btn-gray btn-sm">Izmeni</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-body italic text-center py-4">Nema pretplata.</p>
+    {% endif %}
+  </div>
+
+  {# ─── PAYMENTS ────────────────────────────────────────────────────────── #}
+  <div class="card p-4">
+    <div class="flex items-start justify-between mb-3">
+      <h2 class="text-lg font-bold text-heading">Uplate</h2>
+      <button onclick="openGlobalModal('{% url 'home:create_payment_form' user.pk %}')"
+              class="btn btn-brand btn-sm">Uplata</button>
+    </div>
+    {% if payments %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-default">
+            <th class="text-left py-2 px-2 text-body font-medium">Datum</th>
+            <th class="text-left py-2 px-2 text-body font-medium">Iznos</th>
+            <th class="text-left py-2 px-2 text-body font-medium">Način</th>
+            <th class="text-left py-2 px-2 text-body font-medium">Napomena</th>
+            <th class="text-left py-2 px-2 text-body font-medium">Akcije</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for payment in payments %}
+          <tr class="border-b border-default hover:bg-bg">
+            <td class="py-2 px-2 text-heading">{{ payment.paid_date|date:"d.m.Y" }}</td>
+            <td class="py-2 px-2 font-medium text-success">{{ payment.amount }} RSD</td>
+            <td class="py-2 px-2 text-heading">{{ payment.get_method_display }}</td>
+            <td class="py-2 px-2 text-body">{{ payment.note|default:"—" }}</td>
+            <td class="py-2 px-2">
+              <button onclick="openGlobalModal('{% url 'home:edit_payment_form' payment.pk %}')"
+                      class="btn btn-gray btn-sm">Izmeni</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-body italic text-center py-4">Nema uplata.</p>
+    {% endif %}
+  </div>
+
+  {# ─── DEBT SUMMARY ────────────────────────────────────────────────────── #}
+  <div class="card p-4">
+    <h2 class="text-lg font-bold text-heading mb-3">Trenutno stanje</h2>
+    {% with debt=user.total_debt %}
+    <div class="flex items-center justify-between">
+      <span class="text-body">Ukupan dug:</span>
+      <span class="text-2xl font-bold
+        {% if debt > 0 %}text-danger
+        {% elif debt < 0 %}text-success
+        {% else %}text-heading{% endif %}">
+        {{ debt }} RSD
+      </span>
+    </div>
+    {% endwith %}
+  </div>
+
+</div>
+{% endblock content %}

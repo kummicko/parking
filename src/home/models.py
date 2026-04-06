@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models import Sum
 from django.utils import timezone
 
 
@@ -54,8 +55,10 @@ class ParkingUser(models.Model):
         ).filter(models.Q(auto_renew=True) | models.Q(end_date__gte=today))
 
     def total_debt(self):
-        """Ukupan dug korisnika po svim aktivnim pretplatama."""
-        return sum(s.debt() for s in self.subscriptions.all())
+        """Ukupan dug: ukupno zaduženje po svim pretplatama minus sve uplate."""
+        total_charged = sum(s.total_charged() for s in self.subscriptions.all())
+        total_paid = self.payments.aggregate(total=Sum("amount"))["total"] or 0
+        return total_charged - total_paid
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -148,8 +151,6 @@ class Subscription(models.Model):
     # -----------------------
 
     def save(self, *args, **kwargs):
-        from .models import ParkingConfig
-
         if not self.monthly_price:
             self.monthly_price = ParkingConfig.get().monthly_price
 
@@ -200,26 +201,55 @@ class Subscription(models.Model):
     # -----------------------
 
     def clean(self):
-        """Only one active subscription per spot."""
-        if not self.is_active:
-            return
+        """No overlapping date ranges per spot, and no overlapping date ranges per user."""
+        new_start = self.start_date
+        new_end = self.end_date  # None = open-ended (auto_renew)
 
-        overlapping = Subscription.objects.filter(spot=self.spot).exclude(pk=self.pk)
+        def overlaps(existing_start, existing_end, existing_auto_renew):
+            # Treat cancelled (auto_renew=False, end_date=None) as no end — skip it
+            if existing_end is None and not existing_auto_renew:
+                return False
+            # New subscription is open-ended OR existing is open-ended → always overlaps
+            # unless one ends strictly before the other starts
+            left = existing_end is None or new_start <= existing_end
+            right = new_end is None or existing_start <= new_end
+            return left and right
 
-        for sub in overlapping:
-            if sub.is_active:
-                raise ValidationError("Ovo parking mesto već ima aktivnu pretplatu.")
+        # Prevent overlapping date ranges on the same spot
+        for sub in Subscription.objects.filter(spot=self.spot).exclude(pk=self.pk):
+            if overlaps(sub.start_date, sub.end_date, sub.auto_renew):
+                raise ValidationError(
+                    f"Parking mesto je već zauzeto u ovom periodu "
+                    f"(postoji pretplata od {sub.start_date} do {sub.end_date or '∞'})."
+                )
+
+        # Prevent overlapping date ranges for the same user
+        if self.user_id:
+            for sub in Subscription.objects.filter(user=self.user).exclude(pk=self.pk):
+                if overlaps(sub.start_date, sub.end_date, sub.auto_renew):
+                    raise ValidationError(
+                        f"Korisnik već ima pretplatu u ovom periodu "
+                        f"(od {sub.start_date} do {sub.end_date or '∞'})."
+                    )
 
     # -----------------------
     # Billing
     # -----------------------
 
     def is_active_for_month(self, year, month):
+        import calendar
         from datetime import date
 
         month_start = date(year, month, 1)
+        last_day = calendar.monthrange(year, month)[1]
+        month_end = date(year, month, last_day)
 
-        if self.start_date > month_start:
+        # Subscription hasn't started by end of the month
+        if self.start_date > month_end:
+            return False
+
+        # For non-auto-renewing subscriptions, check if it ended before the month started
+        if not self.auto_renew and self.end_date and self.end_date < month_start:
             return False
 
         if self.is_expired:
@@ -273,17 +303,10 @@ class Subscription(models.Model):
 
         return total.quantize(Decimal("0.01"))
 
-    def total_paid(self):
-        from django.db.models import Sum
-
-        result = self.payments.aggregate(total=Sum("amount"))["total"]
-        return result or 0
-
-    def debt(self):
-        return self.total_charged() - self.total_paid()
-
     def __str__(self):
-        return f"{self.user} — {self.spot} ({self.start_date} do {self.end_date})"
+        return (
+            f"{self.user or '—'} — {self.spot} ({self.start_date} do {self.end_date})"
+        )
 
     class Meta:
         verbose_name = "Pretplata"
@@ -298,11 +321,13 @@ class Payment(models.Model):
         CARD = "card", "Kartica"
         OTHER = "other", "Ostalo"
 
-    subscription = models.ForeignKey(
-        Subscription,
+    user = models.ForeignKey(
+        ParkingUser,
         on_delete=models.CASCADE,
         related_name="payments",
-        verbose_name="Pretplata",
+        verbose_name="Korisnik",
+        null=True,
+        blank=True,
     )
     amount = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Iznos")
     paid_date = models.DateField(default=timezone.now, verbose_name="Datum uplate")
@@ -316,7 +341,9 @@ class Payment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Datum kreiranja")
 
     def __str__(self):
-        return f"{self.subscription.user} — {self.amount} RSD ({self.paid_date.strftime('%d.%m.%Y')})"
+        return (
+            f"{self.user} — {self.amount} RSD ({self.paid_date.strftime('%d.%m.%Y')})"
+        )
 
     class Meta:
         verbose_name = "Uplata"

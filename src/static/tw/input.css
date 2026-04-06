@@ -438,5 +438,8 @@
     .toast-message {
       @apply flex-1;
     }
+    .flatpickr-calendar {
+        z-index: 99999 !important;
+    }
 
 }
