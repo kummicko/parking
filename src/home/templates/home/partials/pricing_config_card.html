@@ -1,0 +1,11 @@
+<div id="pricing-config-card" class="swap-transition card-no-hover flex flex-col gap-1">
+  <span class="text-xs font-bold text-body uppercase tracking-wide">Cena pretplate</span>
+  <span class="text-3xl font-bold text-heading">
+    {{ default_price|floatformat:0|default:"—" }}
+    <span class="text-base font-normal text-body">RSD</span>
+  </span>
+  <button onclick="openGlobalModal('{% url 'home:pricing_config_form' %}')"
+          class="btn btn-gray btn-xs mt-1 text-center">
+    {% if default_price %}Izmeni cenu{% else %}Podesi cenu{% endif %}
+  </button>
+</div>

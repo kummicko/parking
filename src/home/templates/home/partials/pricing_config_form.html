@@ -1,0 +1,35 @@
+<form hx-post="{% url 'home:save_pricing_config' %}"
+      hx-target="#modal-body"
+      hx-swap="innerHTML">
+  {% csrf_token %}
+
+  <div class="flex flex-col gap-3 mb-4">
+
+    <div class="flex flex-col gap-1">
+      <label class="form-label">Mesečna cena pretplate <span class="text-danger">*</span></label>
+      <div class="flex items-center gap-2">
+        {{ form.monthly_price }}
+        <span class="text-sm text-body font-medium">RSD</span>
+      </div>
+      {% for e in form.monthly_price.errors %}
+        <p class="text-xs text-danger mt-0.5">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    {% if config %}
+    <p class="text-xs text-body">
+      Poslednja izmena: {{ config.updated_at|date:"d.m.Y H:i" }}
+    </p>
+    {% endif %}
+
+  </div>
+
+  <div class="flex justify-end gap-2 pt-3 border-t border-default">
+    <button type="button" onclick="closeGlobalModal()"
+            class="btn btn-gray btn-sm">Otkaži</button>
+    <button type="submit"
+            class="btn btn-primary btn-sm">
+      {% if config %}Ažuriraj{% else %}Sačuvaj{% endif %}
+    </button>
+  </div>
+</form>

@@ -1,10 +1,11 @@
 from django.shortcuts import render, get_object_or_404
+from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 from django.http import HttpResponse
 from django.db.models import Sum, Q
 from django.utils import timezone
-from .models import ParkingUser, ParkingSpot, Payment
-from .forms import ParkingUserForm, ParkingSpotForm
+from .models import ParkingUser, ParkingSpot, Payment, ParkingConfig
+from .forms import ParkingUserForm, ParkingSpotForm, ParkingConfigForm
 from django.db import models
 
 
@@ -30,6 +31,12 @@ def index(request):
     free_pct = round((free_spots / total_spots * 100) if total_spots else 0)
     occupied_pct = round((occupied_spots / total_spots * 100) if total_spots else 0)
 
+    # ── Default monthly price ─────────────────────────────────────────────────
+    try:
+        default_price = ParkingConfig.get().monthly_price
+    except (ValueError, ParkingConfig.DoesNotExist):
+        default_price = None
+
     # ── Revenue ───────────────────────────────────────────────────────────────
     revenue_today = (
         Payment.objects.filter(paid_date=today).aggregate(total=Sum("amount"))["total"]
@@ -50,12 +57,19 @@ def index(request):
         "subscription__user", "subscription__spot"
     ).order_by("-paid_date", "-created_at")[:10]
 
+    # ── Spots with subscription info for table ────────────────────────────────
+    spots = ParkingSpot.objects.prefetch_related(
+        "subscriptions__user",
+        "subscriptions__payments",
+    ).order_by("number")
+
     stats = {
         "total_spots": total_spots,
         "free_spots": free_spots,
         "occupied_spots": occupied_spots,
         "free_pct": free_pct,
         "occupied_pct": occupied_pct,
+        "default_price": default_price,
         "revenue_today": revenue_today,
         "sessions_today": sessions_today,
         "total_debt": total_debt,
@@ -67,6 +81,8 @@ def index(request):
         {
             "stats": stats,
             "recent_payments": recent_payments,
+            "alerts": [],
+            "users_with_subs": spots,
         },
     )
 
@@ -231,4 +247,56 @@ def edit_spot(request, pk):
 
     return render(
         request, "home/partials/edit_spot_form.html", {"form": form, "spot": spot}
+    )
+
+
+def pricing_config_form(request):
+    config = ParkingConfig.objects.filter(pk=1).first()
+    if config:
+        form = ParkingConfigForm(instance=config)
+    else:
+        form = ParkingConfigForm()
+    return render(
+        request,
+        "home/partials/pricing_config_form.html",
+        {"form": form, "config": config},
+    )
+
+
+@require_POST
+def save_pricing_config(request):
+    config = ParkingConfig.objects.filter(pk=1).first()
+    if config:
+        form = ParkingConfigForm(request.POST, instance=config)
+    else:
+        form = ParkingConfigForm(request.POST)
+
+    if form.is_valid():
+        form.save()
+        config = ParkingConfig.objects.get(pk=1)
+        card_html = render_to_string(
+            "home/partials/pricing_config_card.html",
+            {"default_price": config.monthly_price},
+            request=request,
+        )
+        oob_card = card_html.replace(
+            'id="pricing-config-card"',
+            'id="pricing-config-card" hx-swap-oob="true"',
+            1,
+        )
+        script = f"""
+        <script>
+            showToast('success', 'Mesečna cena je sačuvana!');
+            document.body.dispatchEvent(new CustomEvent('closeModal', {{
+                detail: {{ refreshId: null }}
+            }}));
+        </script>
+        {oob_card}
+        """
+        return HttpResponse(script)
+
+    return render(
+        request,
+        "home/partials/pricing_config_form.html",
+        {"form": form, "config": config},
     )
