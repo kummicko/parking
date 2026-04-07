@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from decimal import Decimal
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -259,7 +260,6 @@ class Subscription(models.Model):
 
     def total_charged(self):
         import calendar
-        from decimal import Decimal
 
         today = timezone.now().date()
         end = today if self.auto_renew else (self.end_date or today)
@@ -302,6 +302,11 @@ class Subscription(models.Model):
                 cursor_year += 1
 
         return total.quantize(Decimal("0.01"))
+
+    @property
+    def debt(self):
+        """Ukupan dug korisnika — prikazuje se uz svaku pretplatu."""
+        return self.user.total_debt()
 
     def __str__(self):
         return (

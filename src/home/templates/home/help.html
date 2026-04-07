@@ -1,0 +1,219 @@
+{% extends "base_main.html" %}
+{% load static %}
+
+{% block nav_title %}Pomoć{% endblock nav_title %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6 p-4">
+
+  <!-- Uvod -->
+  <div class="bg-bg p-8 rounded-lg border border-default">
+    <h2 class="text-2xl font-bold mb-4 text-brand">Dobro došli u Parking Sistem</h2>
+    <p class="text-body mb-2">
+      Ovaj aplikacija vam omogućava jednostavno upravljanje parking mestima, korisnicima, pretplatama i plaćanjima.
+    </p>
+    <p class="text-body">
+      Uputstvo ispod će vam pomoći da savladate sve osnovne funkcionalnosti sistema.
+    </p>
+  </div>
+
+  <!-- Navigacija -->
+  <div class="bg-bg p-8 rounded-lg border border-default">
+    <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+      <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+      Početna Strana - Pregled
+    </h3>
+    <p class="text-body mb-3">
+      Na početnoj strani imate pregled celokupnog stanja vašeg parking sistema:
+    </p>
+    <ul class="list-disc list-inside space-y-2 text-body">
+      <li><strong>Statistika parking mesta:</strong> Vidite ukupan broj mesta, slobodna i zauzeta mesta sa procentima.</li>
+      <li><strong>Dnevni prihod:</strong> Prikaz današnjeg prihoda i broja transakcija.</li>
+      <li><strong>Ukupni dug:</strong> Pregled ukupnog duga svih korisnika.</li>
+      <li><strong>Nedavne uplate:</strong> Lista poslednjih 10 uplata.</li>
+      <li><strong>Tabela parking mesta:</strong> Detaljan pregled svih mesta sa informacijama o pretplatnicima.</li>
+    </ul>
+  </div>
+
+  <!-- Korisnici -->
+  <div class="bg-bg p-8 rounded-lg border border-default">
+    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+      <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-4a4 4 0 100-8 4 4 0 000 8zm6 4a2 2 0 100-4 2 2 0 000 4zM5 16a2 2 0 100-4 2 2 0 000 4z" />
+      </svg>
+      Upravljanje Korisnicima
+    </h3>
+    
+    <div class="space-y-6">
+      <div>
+        <h4 class="font-semibold text-text mb-3">Dodavanje novog korisnika:</h4>
+        <ol class="list-decimal list-inside space-y-1 text-body">
+          <li>Kliknite na <strong>"Korisnici"</strong> u bočnoj navigaciji.</li>
+          <li>Kliknite na dugme <strong>"Dodaj korisnika"</strong>.</li>
+          <li>Popunite formu: ime, prezime, registarske tablice, kontakt telefon i email (opciono).</li>
+          <li>Kliknite <strong>"Sačuvaj"</strong> da kreirate korisnika.</li>
+        </ol>
+      </div>
+      
+      <div>
+        <h4 class="font-semibold text-text mb-3">Pregled i izmena korisnika:</h4>
+        <ol class="list-decimal list-inside space-y-1 text-body">
+          <li>Na strani "Korisnici" kliknite na korisničko ime da vidite detalje.</li>
+          <li>Možete videti sve pretplate, istorijat uplata i osnovne informacije.</li>
+          <li>Za izmenu, kliknite na dugme <strong>"Izmeni"</strong> na strani detalja korisnika.</li>
+        </ol>
+      </div>
+
+      <div>
+        <h4 class="font-semibold text-text mb-3">Pretraga korisnika:</h4>
+        <p class="text-body">
+          Koristite polje za pretragu da filtrirate korisnike po imenu, prezimenu, registarskim tablicama ili telefonu.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Parking mesta -->
+  <div class="bg-bg p-8 rounded-lg border border-default">
+    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+      <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      </svg>
+      Parking Mesta
+    </h3>
+    
+    <div class="space-y-6">
+      <div>
+        <h4 class="font-semibold text-text mb-3">Dodavanje parking mesta:</h4>
+        <ol class="list-decimal list-inside space-y-1 text-body">
+          <li>Kliknite na <strong>"Mesta"</strong> u bočnoj navigaciji.</li>
+          <li>Kliknite na dugme <strong>"Dodaj mesto"</strong>.</li>
+          <li>Unesite broj/oznaku parking mesta.</li>
+          <li>Opciono možete označiti mesto kao neaktivno ako je van funkcije.</li>
+          <li>Kliknite <strong>"Sačuvaj"</strong>.</li>
+        </ol>
+      </div>
+      
+      <div>
+        <h4 class="font-semibold text-text mb-3">Izmena parking mesta:</h4>
+        <ol class="list-decimal list-inside space-y-1 text-body">
+          <li>Na strani "Mesta" pronađite željeno mesto.</li>
+          <li>Kliknite na ikonicu za izmenu (olovka).</li>
+          <li>Izmenite podatke i sačuvajte.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pretplate -->
+  <div class="bg-bg p-8 rounded-lg border border-default">
+    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+      <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+      Upravljanje Pretplatama
+    </h3>
+    
+    <div class="space-y-6">
+      <div>
+        <h4 class="font-semibold text-text mb-3">Kreiranje pretplate:</h4>
+        <ol class="list-decimal list-inside space-y-1 text-body">
+          <li>Idite na detalje korisnika.</li>
+          <li>Kliknite na <strong>"Dodaj pretplatu"</strong>.</li>
+          <li>Izaberite parking mesto iz padajućeg menija.</li>
+          <li>Podesite datum početka i završetka pretplate.</li>
+          <li>Označite <strong>"Automatsko obnavljanje"</strong> ako želite da se pretplata automatski produžava.</li>
+          <li>Unesite cenu pretplate.</li>
+          <li>Kliknite <strong>"Sačuvaj"</strong>.</li>
+        </ol>
+      </div>
+      
+      <div>
+        <h4 class="font-semibold text-text mb-3">Izmena pretplate:</h4>
+        <p class="text-body">
+          Na strani detalja korisnika, pronađite pretplatu u tabeli i kliknite na ikonicu za izmenu.
+          Možete promeniti parking mesto, datume, cenu i status automatskog obnavljanja.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Uplate -->
+  <div class="bg-bg p-8 rounded-lg border border-default">
+    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+      <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
+      Evidencija Uplata
+    </h3>
+    
+    <div class="space-y-6">
+      <div>
+        <h4 class="font-semibold text-text mb-3">Knjiženje uplate:</h4>
+        <ol class="list-decimal list-inside space-y-1 text-body">
+          <li>Na strani detalja korisnika kliknite na <strong>"Dodaj uplatu"</strong>.</li>
+          <li>Unesite datum uplate (podrazumevano je današnji datum).</li>
+          <li>Unesite iznos uplate.</li>
+          <li>Opciono dodajte napomenu.</li>
+          <li>Kliknite <strong>"Sačuvaj"</strong>.</li>
+        </ol>
+      </div>
+      
+      <div>
+        <h4 class="font-semibold text-text mb-3">Izmena uplate:</h4>
+        <p class="text-body">
+          U tabeli uplata nađite željenu uplatu i kliknite na ikonicu za izmenu.
+          Možete promeniti datum, iznos i napomenu.
+        </p>
+      </div>
+
+      <div>
+        <h4 class="font-semibold text-text mb-3">Pregled duga:</h4>
+        <p class="text-body">
+          Na strani detalja korisnika vidite ukupan dug korisnika koji se automatski obračunava na osnovu pretplata i uplata.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Konfiguracija cena -->
+  <div class="bg-bg p-8 rounded-lg border border-default">
+    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+      <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+      Podešavanje Cena
+    </h3>
+    <p class="text-body mb-3">
+      Podrazumiranu mesečnu cenu pretplate možete podesiti sa početne strane:
+    </p>
+    <ol class="list-decimal list-inside space-y-1 text-body">
+      <li>Na početnoj strani pronađite karticu sa cenom.</li>
+      <li>Kliknite na ikonicu za izmenu.</li>
+      <li>Unesite novu mesečnu cenu.</li>
+      <li>Kliknite <strong>"Sačuvaj"</strong>.</li>
+    </ol>
+    <p class="text-body mt-2">
+      Ova cena će se koristiti kao podrazumevana vrednost pri kreiranju novih pretplata.
+    </p>
+  </div>
+
+  <!-- Odjava -->
+  <div class="bg-bg p-8 rounded-lg border border-default">
+    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+      <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+      </svg>
+      Odjava
+    </h3>
+    <p class="text-body">
+      Kada završite sa radom, kliknite na <strong>"Odjava"</strong> u donjem delu bočne navigacije.
+      Ovo će vas odjaviti iz sistema i preusmeriti na stranicu za prijavu.
+    </p>
+  </div>
+
+</div>
+{% endblock content %}

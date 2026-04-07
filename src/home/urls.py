@@ -28,4 +28,5 @@ urlpatterns = [
     path("spots/<int:pk>/edit/", views.edit_spot, name="edit_spot"),
     path("config/form/", views.pricing_config_form, name="pricing_config_form"),
     path("config/save/", views.save_pricing_config, name="save_pricing_config"),
+    path("pomoc/", views.help, name="help"),
 ]

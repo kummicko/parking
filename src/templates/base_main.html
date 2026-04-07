@@ -39,10 +39,7 @@
 
         <a href="{% url 'home:spots' %}">
           <div class="{% if request.resolver_match.url_name == 'spots' %}sidebar-link-active{% else %}sidebar-link{% endif %} flex gap-4 items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-4a4 4 0 100-8 4 4 0 000 8zm6 4a2 2 0 100-4 2 2 0 000 4zM5 16a2 2 0 100-4 2 2 0 000 4z" />
-            </svg>
+            {% include 'svg/parking-spot.svg' %} 
             <span>Mesta</span>
           </div>
         </a>
@@ -51,7 +48,13 @@
         {% endblock links %}
       </div>
       <div>
-        <a href="#">
+        <a href="{% url 'home:help' %}">
+          <div class="sidebar-link flex gap-4 items-center text-text">
+            {% include "svg/help.svg" %}
+            <span>Pomoć</span>
+          </div>
+        </a>
+        <a href="{% url 'accounts:logout' %}">
           <div class="sidebar-link flex gap-4 items-center text-text">
             {% include "svg/logout.svg" %}
             <span>Odjava</span>
@@ -127,7 +130,7 @@
     </div><!-- end positioning root -->
 
     <!-- FAB -->
-    <div class="fixed bottom-6 right-6 z-40" x-show="!aiSidebarOpened" x-transition>
+    <div class="fixed bottom-6 right-6 z-40" x-show="false">
       <button @click="aiSidebarOpened = true"
               class="bg-brand hover:scale-110 transition-transform text-white p-2 rounded-full shadow-lg flex items-center justify-center">
         {% include "svg/ai_sparkle.svg" %}

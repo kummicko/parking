@@ -474,3 +474,7 @@ def save_pricing_config(request):
         "home/partials/pricing_config_form.html",
         {"form": form, "config": config},
     )
+
+
+def help(request):
+    return render(request, "home/help.html")
