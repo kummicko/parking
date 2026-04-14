@@ -30,14 +30,12 @@ class SubscriptionForm(forms.ModelForm):
 
     class Meta:
         model = Subscription
-        fields = ["spot", "start_date", "end_date", "auto_renew", "monthly_price"]
+        fields = ["spot", "start_date", "end_date", "monthly_price"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        try:
-            default_price = ParkingConfig.get().monthly_price
-        except (ValueError, ParkingConfig.DoesNotExist):
-            default_price = None
+        config = ParkingConfig.get()
+        default_price = config.monthly_price if config else None
         self.fields["monthly_price"].initial = default_price
         self.fields["monthly_price"].required = False
         self.fields["monthly_price"].help_text = "Ostavite prazno za podrazumevanu cenu"

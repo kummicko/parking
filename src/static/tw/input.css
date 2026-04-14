@@ -198,7 +198,7 @@
     }
     
     .sidebar-link {
-        @apply px-3 py-2 font-normal text-text cursor-pointer 
+        @apply px-3 py-2 font-normal text-text text-lg cursor-pointer 
               rounded-md
               border-l-2 border-transparent
               transition-all duration-150
@@ -207,7 +207,7 @@
     }
 
     .sidebar-link-active {
-        @apply px-3 py-2 font-normal text-text cursor-pointer 
+        @apply px-3 py-2 font-normal text-text text-lg cursor-pointer 
               rounded-md
               border-l-2
               border-gray-900 bg-black/4

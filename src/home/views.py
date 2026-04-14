@@ -1,8 +1,9 @@
+from django.core.exceptions import ValidationError
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 from django.http import HttpResponse
-from django.db.models import Sum, Q
+from django.db.models import Q, Sum
 from django.utils import timezone
 from django.urls import reverse
 from django.contrib import messages
@@ -14,7 +15,7 @@ from .forms import (
     PaymentForm,
     SubscriptionForm,
 )
-from django.db import models
+from django.db import models, transaction
 
 
 def index(request):
@@ -40,30 +41,19 @@ def index(request):
     occupied_pct = round((occupied_spots / total_spots * 100) if total_spots else 0)
 
     # ── Default monthly price ─────────────────────────────────────────────────
-    try:
-        default_price = ParkingConfig.get().monthly_price
-    except (ValueError, ParkingConfig.DoesNotExist):
-        default_price = None
+    config = ParkingConfig.get()
+    default_price = config.monthly_price if config else None
 
-    # ── Revenue ───────────────────────────────────────────────────────────────
-    revenue_today = (
-        Payment.objects.filter(paid_date=today).aggregate(total=Sum("amount"))["total"]
-        or 0
-    )
-    sessions_today = Payment.objects.filter(paid_date=today).count()
+    # ── Total debt: all subscriptions' total_charged minus all payments ──────
+    total_charged = sum(s.total_charged() for s in Subscription.objects.all())
+    total_paid = Payment.objects.aggregate(total=Sum("amount"))["total"] or 0
+    total_debt = total_charged - total_paid
 
-    # ── Total debt across all users ───────────────────────────────────────────
-    users = ParkingUser.objects.prefetch_related(
-        "subscriptions__spot",
-    ).all()
-
-    total_debt = sum(u.total_debt() for u in users)
-
-    # ── Recent payments (last 10) ─────────────────────────────────────────────
-    recent_payments = (
+    # ── Last 3 payments for dashboard card ───────────────────────────────────
+    last_three_payments = (
         Payment.objects.select_related("user")
         .filter(user__isnull=False)
-        .order_by("-paid_date", "-created_at")[:10]
+        .order_by("-paid_date", "-created_at")[:3]
     )
 
     # ── Spots with subscription info for table ────────────────────────────────
@@ -78,8 +68,6 @@ def index(request):
         "free_pct": free_pct,
         "occupied_pct": occupied_pct,
         "default_price": default_price,
-        "revenue_today": revenue_today,
-        "sessions_today": sessions_today,
         "total_debt": total_debt,
     }
 
@@ -88,7 +76,7 @@ def index(request):
         "home/index.html",
         {
             "stats": stats,
-            "recent_payments": recent_payments,
+            "last_three_payments": last_three_payments,
             "alerts": [],
             "users_with_subs": spots,
         },
@@ -160,6 +148,7 @@ def user_detail(request, pk):
             "user": user,
             "subscriptions": subscriptions,
             "payments": payments,
+            "debt": user.total_debt(),
         },
     )
 
@@ -274,16 +263,18 @@ def create_subscription(request, pk):
     if form.is_valid():
         subscription = form.save(commit=False)
         subscription.user = user
+        subscription.auto_renew = subscription.end_date is None
         try:
-            subscription.full_clean()  # run clean() with user already set
-        except Exception as e:
-            form.add_error(None, e)
+            with transaction.atomic():
+                subscription.full_clean()
+                subscription.save()
+        except ValidationError as e:
+            form.add_error(None, e.messages)
             return render(
                 request,
                 "home/partials/create_subscription_form.html",
                 {"form": form, "user": user},
             )
-        subscription.save()
         detail_url = reverse("home:user_detail", kwargs={"pk": user.pk})
         messages.success(request, "Pretplata uspešno kreirana!")
         script = f"""
@@ -315,16 +306,18 @@ def edit_subscription(request, sub_pk):
     form = SubscriptionForm(request.POST, instance=subscription)
     if form.is_valid():
         subscription = form.save(commit=False)
+        subscription.auto_renew = subscription.end_date is None
         try:
-            subscription.full_clean()
-        except Exception as e:
-            form.add_error(None, e)
+            with transaction.atomic():
+                subscription.full_clean()
+                subscription.save()
+        except ValidationError as e:
+            form.add_error(None, e.messages)
             return render(
                 request,
                 "home/partials/edit_subscription_form.html",
                 {"form": form, "subscription": subscription},
             )
-        subscription.save()
         detail_url = reverse("home:user_detail", kwargs={"pk": subscription.user.pk})
         messages.success(request, "Pretplata uspešno izmenjena!")
         script = f"""

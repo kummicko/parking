@@ -21,10 +21,6 @@ class ParkingConfig(models.Model):
     @classmethod
     def get(cls):
         obj = cls.objects.filter(pk=1).first()
-        if obj is None:
-            raise ValueError(
-                "Mesečna cena nije podešena. Molimo unesite je u Podešavanjima parkinga."
-            )
         return obj
 
     def __str__(self):
@@ -152,9 +148,10 @@ class Subscription(models.Model):
     # -----------------------
 
     def save(self, *args, **kwargs):
-        if not self.monthly_price:
-            self.monthly_price = ParkingConfig.get().monthly_price
-
+        if self.monthly_price is None:
+            config = ParkingConfig.get()
+            if config:
+                self.monthly_price = config.monthly_price
         super().save(*args, **kwargs)
 
     # -----------------------
@@ -331,8 +328,6 @@ class Payment(models.Model):
         on_delete=models.CASCADE,
         related_name="payments",
         verbose_name="Korisnik",
-        null=True,
-        blank=True,
     )
     amount = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Iznos")
     paid_date = models.DateField(default=timezone.now, verbose_name="Datum uplate")

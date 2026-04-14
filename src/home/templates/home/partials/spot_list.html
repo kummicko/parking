@@ -16,10 +16,8 @@
         <h3 class="text-lg font-bold text-heading">{{ spot.number }}</h3>
         <button
           onclick="openGlobalModal('{% url 'home:edit_spot_form' spot.pk %}')"
-          class="btn btn-gray btn-xs icon-btn">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-          </svg>
+          class="btn btn-gray btn-xs">
+          Izmeni
         </button>
       </div>
 
@@ -32,13 +30,18 @@
 
         {% elif spot.active_subscription %}
           <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium
-                      bg-danger-soft dark:bg-danger-soft/20 
-                      text-danger dark:text-danger-medium 
+                      bg-danger-soft dark:bg-danger-soft/20
+                      text-danger dark:text-danger-medium
                       border border-danger-subtle dark:border-danger-subtle/40">
             {{ spot.active_subscription.user }}
             <span class="text-xs opacity-70">
               od {{ spot.active_subscription.start_date|date:"d.m.Y" }}
             </span>
+            {% if spot.active_subscription.auto_renew %}
+              <span class="text-xs text-success">✓ auto-obnova</span>
+            {% elif spot.active_subscription.end_date %}
+              <span class="text-xs opacity-70">do {{ spot.active_subscription.end_date|date:"d.m.Y" }}</span>
+            {% endif %}
           </span>
         {% else %}
           <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium

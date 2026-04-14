@@ -23,7 +23,10 @@
 
     <div class="flex flex-col gap-1">
       <label class="form-label">Datum početka <span class="text-danger">*</span></label>
-      {{ form.start_date }}
+      <div class="flex items-center gap-2">
+        {{ form.start_date }}
+        {% include "svg/calendar.svg" %}
+      </div>
       {% for e in form.start_date.errors %}
         <p class="text-xs text-danger mt-0.5">{{ e }}</p>
       {% endfor %}
@@ -31,7 +34,10 @@
 
     <div class="flex flex-col gap-1">
       <label class="form-label">Datum isteka</label>
-      {{ form.end_date }}
+      <div class="flex items-center gap-2">
+        {{ form.end_date }}
+        {% include "svg/calendar.svg" %}
+      </div>
       {% if form.end_date.help_text %}
         <span class="text-xs text-body">{{ form.end_date.help_text }}</span>
       {% endif %}
@@ -47,17 +53,6 @@
         <span class="text-xs text-body">{{ form.monthly_price.help_text }}</span>
       {% endif %}
       {% for e in form.monthly_price.errors %}
-        <p class="text-xs text-danger mt-0.5">{{ e }}</p>
-      {% endfor %}
-    </div>
-
-    <div class="flex flex-col gap-1">
-      <label class="form-label">Automatsko obnavljanje</label>
-      <div class="flex items-center gap-2 mt-1">
-        {{ form.auto_renew }}
-        <span class="text-sm text-body">Uključeno</span>
-      </div>
-      {% for e in form.auto_renew.errors %}
         <p class="text-xs text-danger mt-0.5">{{ e }}</p>
       {% endfor %}
     </div>

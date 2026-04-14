@@ -1,6 +1,6 @@
 {% extends "base_main.html" %}
 
-{% block nav_title %}Dashboard{% endblock nav_title %}
+{% block nav_title %}Pregled stanja{% endblock nav_title %}
 
 {% block links %}
 {% endblock links %}
@@ -10,9 +10,7 @@
 {# ─── KPI STAT CARDS ──────────────────────────────────────────────────────── #}
 <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
 
-  {% include "home/partials/pricing_config_card.html" with default_price=stats.default_price %}
-
-  <div class="card-no-hover flex flex-col gap-1">
+  <div class="card-no-hover flex flex-col gap-1 h-full justify-around">
     <span class="text-xs font-bold text-danger uppercase tracking-wide">Ukupan dug</span>
     <span class="text-3xl font-bold text-danger">
       {{ stats.total_debt|floatformat:0|default:"0" }}
@@ -21,43 +19,52 @@
     <span class="text-xs text-body">dug svih korisnika</span>
   </div>
 
-  <div class="card-no-hover flex flex-col gap-3">
+  <div class="card-no-hover flex flex-col gap-3 h-full justify-around">
     <h2 class="font-semibold text-heading text-sm uppercase tracking-wide">Popunjenost parkinga</h2>
 
     <div class="flex flex-col gap-2">
       <div class="flex justify-between items-center text-sm">
-        <span class="font-medium text-body">Zauzeto</span>
+        <span class="font-medium text-danger">Zauzeto</span>
         <span class="text-xs text-body">{{ stats.occupied_spots }}/{{ stats.total_spots }} mesta</span>
       </div>
-      <div class="w-full bg-default rounded-full h-3">
-        <div class="h-3 rounded-full transition-all duration-500
-          {% if stats.occupied_pct >= 90 %}bg-danger
-          {% elif stats.occupied_pct >= 60 %}bg-warning
-          {% else %}bg-success{% endif %}"
+      <div class="w-full bg-success rounded-full h-3 overflow-hidden">
+        <div class="h-3 bg-danger rounded-full transition-all duration-500"
           style="width: {{ stats.occupied_pct|default:0 }}%">
         </div>
       </div>
-      <div class="flex justify-between text-xs text-body mt-1">
-        <span class="text-success">{{ stats.free_spots }} slobodna</span>
+      <div class="flex justify-between text-xs text-body">
         <span class="text-danger">{{ stats.occupied_spots }} zauzeta</span>
+        <span class="text-success">{{ stats.free_spots }} slobodna</span>
       </div>
     </div>
   </div>
 
-  <div class="card-no-hover flex flex-col gap-1">
-    <span class="text-xs font-bold text-fg-brand uppercase tracking-wide">Prihod danas</span>
-    <span class="text-3xl font-bold text-heading">
-      {{ stats.revenue_today|default:"—" }}
-      <span class="text-base font-normal text-body">RSD</span>
-    </span>
-    <span class="text-xs text-body">{{ stats.sessions_today|default:"0" }} uplata danas</span>
+  <div class="card-no-hover flex flex-col gap-2 h-full justify-around">
+    <span class="text-xs font-bold text-fg-brand uppercase tracking-wide">Poslednje uplate</span>
+    {% if last_three_payments %}
+      <div class="flex flex-col gap-2">
+        {% for payment in last_three_payments %}
+        <div class="flex items-center justify-between text-sm py-1">
+          <div class="flex flex-col gap-0.5">
+            <span class="font-medium text-heading">{{ payment.user.first_name }} {{ payment.user.last_name }}</span>
+            <span class="text-xs text-body">{{ payment.paid_date|date:"d.m.Y" }}</span>
+          </div>
+          <span class="text-lg font-bold text-success">{{ payment.amount|floatformat:0 }} <span class="text-sm font-normal text-body">RSD</span></span>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <span class="text-xs text-body italic">Nema uplata</span>
+    {% endif %}
   </div>
+
+  {% include "home/partials/pricing_config_card.html" with default_price=stats.default_price %}
 
 </div>
 
 {# ─── USER SUBSCRIPTIONS TABLE ────────────────────────────────────────────── #}
 <div class="card-no-hover flex flex-col gap-2 mb-4">
-  <h2 class="font-semibold text-heading text-sm uppercase tracking-wide">Pretplate korisnika</h2>
+  <h2 class="font-semibold text-heading text-sm uppercase tracking-wide">Aktivni zakupi</h2>
 
   <div class="overflow-x-auto">
     <table class="w-full text-sm">
@@ -65,7 +72,7 @@
         <tr class="border-b border-default text-body text-left">
           <th class="py-2 px-3 font-medium">Mesto</th>
           <th class="py-2 px-3 font-medium">Korisnik</th>
-          <th class="py-2 px-3 font-medium">Pretplata</th>
+          <th class="py-2 px-3 font-medium">Zakup</th>
           <th class="py-2 px-3 font-medium text-right">Dug</th>
         </tr>
       </thead>
