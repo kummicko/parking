@@ -16,6 +16,19 @@ from .forms import (
     SubscriptionForm,
 )
 from django.db import models, transaction
+import re
+
+
+def _natural_sort_spots(qs):
+    """Sort a queryset of ParkingSpot objects by number using natural sorting."""
+    def natural_sort_key(s):
+        return [
+            int(part) if part.isdigit() else part.lower()
+            for part in re.split(r'(\d+)', s)
+        ]
+    spots_list = list(qs)
+    spots_list.sort(key=lambda spot: natural_sort_key(spot.number))
+    return spots_list
 
 
 def index(request):
@@ -57,9 +70,8 @@ def index(request):
     )
 
     # ── Spots with subscription info for table ────────────────────────────────
-    spots = ParkingSpot.objects.prefetch_related(
-        "subscriptions__user",
-    ).order_by("number")
+    spots_qs = ParkingSpot.objects.prefetch_related("subscriptions__user")
+    spots = _natural_sort_spots(spots_qs)
 
     stats = {
         "total_spots": total_spots,
@@ -339,7 +351,7 @@ def get_spots_queryset(q=None):
     if q:
         qs = qs.filter(number__icontains=q)
 
-    return qs
+    return _natural_sort_spots(qs)
 
 
 def spots(request):
@@ -350,8 +362,8 @@ def spots(request):
         "home/spots.html",
         {
             "parking_spots": parking_spots,
-            "total_count": parking_spots.count(),
-            "active_count": parking_spots.filter(is_active=True).count(),
+            "total_count": len(parking_spots),
+            "active_count": sum(1 for spot in parking_spots if spot.is_active),
         },
     )
 
