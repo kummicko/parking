@@ -1,4 +1,5 @@
 {% extends "base_main.html" %}
+{% load humanize %}
 
 {% block nav_title %}Pregled stanja{% endblock nav_title %}
 
@@ -8,12 +9,12 @@
 {% block content %}
 
 {# ─── KPI STAT CARDS ──────────────────────────────────────────────────────── #}
-<div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
 
   <div class="card-no-hover flex flex-col gap-1 h-full justify-around">
-    <span class="text-xs font-bold text-danger uppercase tracking-wide">Ukupan dug</span>
-    <span class="text-3xl font-bold text-danger">
-      {{ stats.total_debt|floatformat:0|default:"0" }}
+    <span class="text-xs font-bold text-danger dark:text-rose-400 uppercase tracking-wide">Ukupan dug</span>
+    <span class="text-3xl font-bold text-danger dark:text-rose-400">
+      {{ stats.total_debt|floatformat:0|intcomma|cut:"-"|default:"0" }}
       <span class="text-base font-normal text-body">RSD</span>
     </span>
     <span class="text-xs text-body">dug svih korisnika</span>
@@ -24,7 +25,7 @@
 
     <div class="flex flex-col gap-2">
       <div class="flex justify-between items-center text-sm">
-        <span class="font-medium text-danger">Zauzeto</span>
+        <span class="font-medium text-danger dark:text-rose-400">Zauzeto</span>
         <span class="text-xs text-body">{{ stats.occupied_spots }}/{{ stats.total_spots }} mesta</span>
       </div>
       <div class="w-full bg-success rounded-full h-3 overflow-hidden">
@@ -33,7 +34,7 @@
         </div>
       </div>
       <div class="flex justify-between text-xs text-body">
-        <span class="text-danger">{{ stats.occupied_spots }} zauzeta</span>
+        <span class="text-danger dark:text-rose-400">{{ stats.occupied_spots }} zauzeta</span>
         <span class="text-success">{{ stats.free_spots }} slobodna</span>
       </div>
     </div>
@@ -49,7 +50,7 @@
             <span class="font-medium text-heading">{{ payment.user.first_name }} {{ payment.user.last_name }}</span>
             <span class="text-xs text-body">{{ payment.paid_date|date:"d.m.Y" }}</span>
           </div>
-          <span class="text-lg font-bold text-success">{{ payment.amount|floatformat:0 }} <span class="text-sm font-normal text-body">RSD</span></span>
+          <span class="text-lg font-bold text-success">{{ payment.amount|floatformat:0|intcomma }} <span class="text-sm font-normal text-body">RSD</span></span>
         </div>
         {% endfor %}
       </div>
@@ -80,7 +81,11 @@
         {% for spot in users_with_subs %}
           {% with sub=spot.active_subscription %}
         <tr class="hover:bg-bg">
-          <td class="py-2 px-3 font-medium text-heading">{{ spot.number }}</td>
+          <td class="py-2 px-3 font-medium text-heading">
+            <div class="max-w-[4ch] overflow-hidden text-ellipsis whitespace-nowrap sm:max-w-none sm:overflow-visible sm:whitespace-normal">
+              {{ spot.number }}
+            </div>
+          </td>
           <td class="py-2 px-3 text-body">
             {% if sub %}
               {{ sub.user.first_name }} {{ sub.user.last_name }}
@@ -101,13 +106,13 @@
           </td>
           <td class="py-2 px-3 text-right font-bold
             {% if sub %}
-              {% if sub.debt > 0 %}text-danger
+              {% if sub.debt > 0 %}text-danger dark:text-rose-400
               {% elif sub.debt < 0 %}text-success
               {% else %}text-body{% endif %}
             {% else %}
               text-body/60
             {% endif %}">
-            {% if sub %}{{ sub.debt|floatformat:0 }} RSD{% else %}—{% endif %}
+            {% if sub %}{{ sub.debt|floatformat:0|intcomma|cut:"-" }} RSD{% else %}—{% endif %}
           </td>
         </tr>
           {% endwith %}

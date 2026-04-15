@@ -39,10 +39,14 @@ class SubscriptionForm(forms.ModelForm):
         self.fields["monthly_price"].initial = default_price
         self.fields["monthly_price"].required = False
         self.fields["monthly_price"].help_text = "Ostavite prazno za podrazumevanu cenu"
+        self.fields["monthly_price"].widget.attrs.update(
+            {"class": "form-input", "step": "100", "min": "0"}
+        )
         self.fields["end_date"].help_text = "Ostavite prazno za automatsko obnavljanje"
         self.fields["spot"].queryset = ParkingSpot.objects.filter(
             is_active=True
         ).order_by("number")
+        self.fields["spot"].widget.attrs.update({"class": "form-input"})
 
 
 class PaymentForm(forms.ModelForm):

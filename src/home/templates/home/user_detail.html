@@ -1,5 +1,6 @@
 {% extends "base_main.html" %}
 {% load static %}
+{% load humanize %}
 
 {% block nav_title %}{{ user.first_name }} {{ user.last_name }}{% endblock nav_title %}
 
@@ -93,8 +94,8 @@
                 —
               {% endif %}
             </td>
-            <td class="py-2 px-2 text-heading">{{ sub.monthly_price }} RSD</td>
-            <td class="py-2 px-2 text-heading">{{ sub.total_charged }} RSD</td>
+            <td class="py-2 px-2 text-heading">{{ sub.monthly_price|floatformat:0|intcomma }} RSD</td>
+            <td class="py-2 px-2 text-heading">{{ sub.total_charged|floatformat:0|intcomma }} RSD</td>
             <td class="py-2 px-2">
               {% if sub.is_active %}
                 <span class="text-success font-medium">Aktivan</span>
@@ -143,7 +144,7 @@
           {% for payment in payments %}
           <tr class="border-b border-default hover:bg-bg">
             <td class="py-2 px-2 text-heading">{{ payment.paid_date|date:"d.m.Y" }}</td>
-            <td class="py-2 px-2 font-medium text-success">{{ payment.amount }} RSD</td>
+            <td class="py-2 px-2 font-medium text-success">{{ payment.amount|floatformat:0|intcomma }} RSD</td>
             <td class="py-2 px-2 text-heading">{{ payment.get_method_display }}</td>
             <td class="py-2 px-2 text-body">{{ payment.note|default:"—" }}</td>
             <td class="py-2 px-2">
@@ -165,12 +166,14 @@
     <h2 class="text-lg font-bold text-heading mb-3">Trenutno stanje</h2>
     {% with debt=user.total_debt %}
     <div class="flex items-center justify-between">
-      <span class="text-body">Ukupan dug:</span>
+      <span class="text-body">
+        {% if debt < 0 %}Pretplata{% else %}Ukupan dug{% endif %}:
+      </span>
       <span class="text-2xl font-bold
         {% if debt > 0 %}text-danger
         {% elif debt < 0 %}text-success
         {% else %}text-heading{% endif %}">
-        {{ debt }} RSD
+        {{ debt|floatformat:0|intcomma|cut:"-" }} RSD
       </span>
     </div>
     {% endwith %}
@@ -197,7 +200,7 @@
       phoneAnchor.href = 'tel:{{ user.phone }}';
     }
     if (smsAnchor) {
-      var debt = '{{ debt|default:0 }}';
+      var debt = Math.abs({{ user.total_debt|floatformat:0 }});
       var msg = 'Poštovani, Vaše trenutno stanje duga za parking iznosi ' + debt + ' RSD.';
       var separator = isIOS ? '&body=' : '?body=';
       smsAnchor.href = 'sms:{{ user.phone }}' + separator + encodeURIComponent(msg);
